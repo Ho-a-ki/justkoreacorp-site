@@ -5,7 +5,10 @@
       "WebFetch(domain:just.swiss)",
       "Bash(npm create:*)",
       "Bash(npm install:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "mcp__claude_ai_Notion__notion-fetch",
+      "WebFetch(domain:career.justkorea.co.kr)",
+      "Bash(rm:*)"
     ]
   }
 }
