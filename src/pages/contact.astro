@@ -1,0 +1,169 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="연락처" description="저스트코리아와 협업 및 문의를 위한 연락처입니다.">
+  <Header />
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="page-hero__label">Contact</p>
+        <h1 class="page-hero__title">함께<br /><em>만들어가요</em></h1>
+        <p class="page-hero__desc">협업 제안, 미디어 문의, 비즈니스 파트너십 등 다양한 문의를 환영합니다.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container contact-grid">
+        <div class="contact-info">
+          <div class="contact-item">
+            <span class="contact-item__label">이메일</span>
+            <a href="mailto:hello@justkoreacorp.com" class="contact-item__value">hello@justkoreacorp.com</a>
+          </div>
+          <div class="contact-item">
+            <span class="contact-item__label">협업 문의</span>
+            <a href="mailto:partner@justkoreacorp.com" class="contact-item__value">partner@justkoreacorp.com</a>
+          </div>
+          <div class="contact-item">
+            <span class="contact-item__label">미디어 / PR</span>
+            <a href="mailto:pr@justkoreacorp.com" class="contact-item__value">pr@justkoreacorp.com</a>
+          </div>
+          <div class="contact-item">
+            <span class="contact-item__label">주소</span>
+            <p class="contact-item__value">서울특별시 —</p>
+          </div>
+        </div>
+
+        <form class="contact-form">
+          <div class="form-group">
+            <label class="form-label">이름</label>
+            <input type="text" class="form-input" placeholder="홍길동" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">이메일</label>
+            <input type="email" class="form-input" placeholder="example@email.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">문의 유형</label>
+            <select class="form-input">
+              <option value="">선택해주세요</option>
+              <option>협업 제안</option>
+              <option>미디어 / PR</option>
+              <option>비즈니스 파트너십</option>
+              <option>기타</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">메시지</label>
+            <textarea class="form-input form-textarea" placeholder="문의 내용을 입력해주세요."></textarea>
+          </div>
+          <button type="submit" class="form-submit">보내기</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: var(--spacing-xl);
+    align-items: start;
+  }
+
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .contact-item__label {
+    display: block;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .contact-item__value {
+    font-size: 0.95rem;
+    color: var(--charcoal);
+    transition: color 0.2s;
+  }
+
+  a.contact-item__value:hover {
+    color: var(--green-mid);
+  }
+
+  /* Form */
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--gray);
+  }
+
+  .form-input {
+    padding: 0.9em 1.2em;
+    border: 1px solid var(--cream-dark);
+    border-radius: 2px;
+    background-color: var(--white);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--charcoal);
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+
+  .form-input:focus {
+    border-color: var(--green-mid);
+  }
+
+  .form-textarea {
+    min-height: 140px;
+    resize: vertical;
+  }
+
+  .form-submit {
+    padding: 1em 2.5em;
+    background-color: var(--green-deep);
+    color: var(--cream);
+    border: none;
+    border-radius: 2px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    align-self: flex-start;
+  }
+
+  .form-submit:hover {
+    background-color: var(--green-mid);
+  }
+
+  @media (max-width: 768px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

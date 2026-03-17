@@ -1,0 +1,117 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="스토어" description="저스트코리아 스토어 위치와 운영 정보를 안내합니다.">
+  <Header />
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="page-hero__label">Stores</p>
+        <h1 class="page-hero__title">스토어</h1>
+        <p class="page-hero__desc">가까운 저스트코리아 스토어를 방문해보세요.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="store-grid">
+          <div class="store-card">
+            <p class="store-card__region">서울</p>
+            <h2 class="store-card__name">강남점</h2>
+            <div class="store-card__info">
+              <p>서울특별시 강남구 —</p>
+              <p class="store-card__hours">월–금 10:00–19:00 / 주말 11:00–18:00</p>
+            </div>
+          </div>
+          <div class="store-card">
+            <p class="store-card__region">서울</p>
+            <h2 class="store-card__name">홍대점</h2>
+            <div class="store-card__info">
+              <p>서울특별시 마포구 —</p>
+              <p class="store-card__hours">월–금 11:00–20:00 / 주말 11:00–19:00</p>
+            </div>
+          </div>
+          <div class="store-card">
+            <p class="store-card__region">경기</p>
+            <h2 class="store-card__name">판교점</h2>
+            <div class="store-card__info">
+              <p>경기도 성남시 분당구 —</p>
+              <p class="store-card__hours">월–금 10:00–19:00 / 주말 10:00–18:00</p>
+            </div>
+          </div>
+        </div>
+
+        <p class="store-note">* 정확한 주소 및 운영시간은 추후 업데이트됩니다.</p>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .store-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .store-card {
+    border: 1px solid var(--cream-dark);
+    padding: 2.5rem 2rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .store-card:hover {
+    border-color: var(--green-mid);
+    transform: translateY(-4px);
+  }
+
+  .store-card__region {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+
+  .store-card__name {
+    font-size: 1.8rem;
+    color: var(--green-deep);
+    margin-bottom: 1.5rem;
+  }
+
+  .store-card__info {
+    font-size: 0.85rem;
+    color: var(--gray);
+    line-height: 1.8;
+  }
+
+  .store-card__hours {
+    color: var(--charcoal);
+    margin-top: 0.5rem;
+  }
+
+  .store-note {
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    color: var(--gray);
+  }
+
+  @media (max-width: 1024px) {
+    .store-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .store-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

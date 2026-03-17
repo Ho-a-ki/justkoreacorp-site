@@ -1,0 +1,150 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="허브 백과사전" description="다양한 허브의 효능과 특성을 알아보세요.">
+  <Header />
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="page-hero__label">Herb Encyclopedia</p>
+        <h1 class="page-hero__title">허브 백과사전</h1>
+        <p class="page-hero__desc">자연이 품은 허브의 이야기, 효능, 그리고 활용법을 소개합니다.</p>
+      </div>
+    </section>
+
+    <section class="section section--cream">
+      <div class="container">
+        <div class="hub-search">
+          <input type="text" placeholder="허브 검색..." class="hub-search__input" />
+        </div>
+
+        <div class="hub-grid">
+          {[
+            { name: '라벤더', latin: 'Lavandula angustifolia', tag: '릴렉스' },
+            { name: '페퍼민트', latin: 'Mentha × piperita', tag: '소화' },
+            { name: '카모마일', latin: 'Matricaria chamomilla', tag: '진정' },
+            { name: '로즈마리', latin: 'Salvia rosmarinus', tag: '활력' },
+            { name: '에키나세아', latin: 'Echinacea purpurea', tag: '면역' },
+            { name: '레몬밤', latin: 'Melissa officinalis', tag: '안정' },
+          ].map(herb => (
+            <div class="herb-card">
+              <div class="herb-card__icon">
+                <span>✦</span>
+              </div>
+              <span class="herb-card__tag">{herb.tag}</span>
+              <h3 class="herb-card__name">{herb.name}</h3>
+              <p class="herb-card__latin">{herb.latin}</p>
+              <a href="#" class="herb-card__link">자세히 보기 →</a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .hub-search {
+    margin-bottom: 3rem;
+  }
+
+  .hub-search__input {
+    width: 100%;
+    max-width: 480px;
+    padding: 1rem 1.5rem;
+    border: 1px solid var(--cream-dark);
+    border-radius: 2px;
+    background-color: var(--white);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--charcoal);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .hub-search__input:focus {
+    border-color: var(--green-mid);
+  }
+
+  .hub-search__input::placeholder {
+    color: var(--gray);
+  }
+
+  .hub-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .herb-card {
+    background-color: var(--white);
+    border: 1px solid var(--cream-dark);
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .herb-card:hover {
+    border-color: var(--green-light);
+    transform: translateY(-4px);
+  }
+
+  .herb-card__icon {
+    font-size: 1.5rem;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .herb-card__tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green-mid);
+    font-weight: 500;
+  }
+
+  .herb-card__name {
+    font-size: 1.5rem;
+    color: var(--green-deep);
+  }
+
+  .herb-card__latin {
+    font-size: 0.8rem;
+    color: var(--gray);
+    font-style: italic;
+    flex: 1;
+  }
+
+  .herb-card__link {
+    font-size: 0.82rem;
+    color: var(--green-mid);
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 0.1em;
+    display: inline-block;
+    transition: color 0.2s;
+  }
+
+  .herb-card__link:hover {
+    color: var(--gold);
+  }
+
+  @media (max-width: 1024px) {
+    .hub-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hub-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
