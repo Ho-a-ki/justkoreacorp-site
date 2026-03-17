@@ -1,7 +1,30 @@
 ---
+import { Client } from '@notionhq/client';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+
+const notion = new Client({ auth: import.meta.env.NOTION_API_KEY });
+
+const DATA_SOURCE_ID = 'f5081f2a-6393-44a4-9f8c-2bedaa2bb2a0';
+
+const response = await notion.dataSources.query({
+  data_source_id: DATA_SOURCE_ID,
+  sorts: [{ property: '이름', direction: 'ascending' }],
+});
+
+const stores = response.results.map((page: any) => {
+  const props = page.properties;
+  return {
+    id: page.id,
+    name: props['이름']?.title?.[0]?.plain_text ?? '',
+    address: props['주소']?.rich_text?.[0]?.plain_text ?? '',
+    phone: props['전화']?.rich_text?.[0]?.plain_text ?? '',
+    tag: props['태그']?.select?.name ?? '',
+    type: props['매장유형']?.select?.name ?? '',
+    spa: props['스파 여부']?.select?.name ?? '',
+  };
+});
 ---
 
 <BaseLayout title="스토어" description="저스트코리아 스토어 위치와 운영 정보를 안내합니다.">
@@ -18,34 +41,28 @@ import Footer from '../components/Footer.astro';
 
     <section class="section">
       <div class="container">
-        <div class="store-grid">
-          <div class="store-card">
-            <p class="store-card__region">서울</p>
-            <h2 class="store-card__name">강남점</h2>
-            <div class="store-card__info">
-              <p>서울특별시 강남구 —</p>
-              <p class="store-card__hours">월–금 10:00–19:00 / 주말 11:00–18:00</p>
-            </div>
+        {stores.length === 0 ? (
+          <p class="empty">등록된 스토어가 없습니다.</p>
+        ) : (
+          <div class="store-grid">
+            {stores.map(store => (
+              <div class="store-card">
+                <div class="store-card__top">
+                  {store.tag && <p class="store-card__region">{store.tag}</p>}
+                  <div class="store-card__badges">
+                    {store.type && <span class="badge badge--type">{store.type}</span>}
+                    {store.spa && <span class="badge badge--spa">스파</span>}
+                  </div>
+                </div>
+                <h2 class="store-card__name">{store.name}</h2>
+                <div class="store-card__info">
+                  {store.address && <p>📍 {store.address}</p>}
+                  {store.phone && <p>📞 {store.phone}</p>}
+                </div>
+              </div>
+            ))}
           </div>
-          <div class="store-card">
-            <p class="store-card__region">서울</p>
-            <h2 class="store-card__name">홍대점</h2>
-            <div class="store-card__info">
-              <p>서울특별시 마포구 —</p>
-              <p class="store-card__hours">월–금 11:00–20:00 / 주말 11:00–19:00</p>
-            </div>
-          </div>
-          <div class="store-card">
-            <p class="store-card__region">경기</p>
-            <h2 class="store-card__name">판교점</h2>
-            <div class="store-card__info">
-              <p>경기도 성남시 분당구 —</p>
-              <p class="store-card__hours">월–금 10:00–19:00 / 주말 10:00–18:00</p>
-            </div>
-          </div>
-        </div>
-
-        <p class="store-note">* 정확한 주소 및 운영시간은 추후 업데이트됩니다.</p>
+        )}
       </div>
     </section>
   </main>
@@ -58,12 +75,11 @@ import Footer from '../components/Footer.astro';
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
-    margin-top: 2rem;
   }
 
   .store-card {
     border: 1px solid var(--cream-dark);
-    padding: 2.5rem 2rem;
+    padding: 2rem;
     transition: border-color 0.2s, transform 0.2s;
   }
 
@@ -72,46 +88,69 @@ import Footer from '../components/Footer.astro';
     transform: translateY(-4px);
   }
 
+  .store-card__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+
   .store-card__region {
     font-size: 0.7rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--gold);
-    margin-bottom: 0.75rem;
+    font-weight: 500;
+  }
+
+  .store-card__badges {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.2em 0.6em;
+    border-radius: 2px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  .badge--type {
+    background-color: var(--cream-dark);
+    color: var(--charcoal);
+  }
+
+  .badge--spa {
+    background-color: var(--green-deep);
+    color: #ffffff;
   }
 
   .store-card__name {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     color: var(--green-deep);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
   }
 
   .store-card__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
     font-size: 0.85rem;
     color: var(--gray);
-    line-height: 1.8;
+    line-height: 1.6;
   }
 
-  .store-card__hours {
-    color: var(--charcoal);
-    margin-top: 0.5rem;
-  }
-
-  .store-note {
-    margin-top: 2rem;
-    font-size: 0.8rem;
+  .empty {
     color: var(--gray);
+    font-size: 0.95rem;
   }
 
   @media (max-width: 1024px) {
-    .store-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
+    .store-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 640px) {
-    .store-grid {
-      grid-template-columns: 1fr;
-    }
+    .store-grid { grid-template-columns: 1fr; }
   }
 </style>

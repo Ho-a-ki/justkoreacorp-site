@@ -1,0 +1,205 @@
+---
+import { Client } from '@notionhq/client';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+
+const notion = new Client({ auth: import.meta.env.NOTION_API_KEY });
+const DATA_SOURCE_ID = '3266d57b-1f96-8104-8750-000b5a0fb69b';
+
+const response = await notion.dataSources.query({
+  data_source_id: DATA_SOURCE_ID,
+  sorts: [{ property: '날짜', direction: 'descending' }],
+});
+
+const activities = response.results.map((page: any) => {
+  const props = page.properties;
+  return {
+    id: page.id,
+    title: props['제목']?.title?.[0]?.plain_text ?? '',
+    date: props['날짜']?.date?.start ?? '',
+    year: props['연도']?.select?.name ?? '',
+    category: props['구분']?.select?.name ?? '',
+    summary: props['요약']?.rich_text?.[0]?.plain_text ?? '',
+  };
+});
+
+const years = [...new Set(activities.map(a => a.year).filter(Boolean))].sort((a, b) => Number(b) - Number(a));
+
+const categoryColors: Record<string, string> = {
+  '행사/활동': 'orange',
+  '수상': 'yellow',
+  '교육/강연': 'purple',
+  '방문/미팅': 'blue',
+  '기타': 'gray',
+};
+---
+
+<BaseLayout title="주요 활동" description="저스트코리아의 연혁 및 주요 활동을 소개합니다.">
+  <Header />
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="page-hero__label">Activities</p>
+        <h1 class="page-hero__title">연혁 및<br /><em>주요 활동</em></h1>
+        <p class="page-hero__desc">저스트코리아가 만들어가는 다양한 활동과 사회적 가치를 소개합니다.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        {years.map(year => (
+          <div class="year-group">
+            <div class="year-label">{year}</div>
+            <div class="timeline">
+              {activities.filter(a => a.year === year).map(activity => (
+                <a href={`/activities/${activity.id}`} class="timeline-item">
+                  <div class="timeline-dot"></div>
+                  <div class="timeline-content">
+                    <div class="timeline-meta">
+                      {activity.date && (
+                        <span class="timeline-date">
+                          {new Date(activity.date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}
+                        </span>
+                      )}
+                      {activity.category && (
+                        <span class={`timeline-cat cat--${categoryColors[activity.category] ?? 'gray'}`}>
+                          {activity.category}
+                        </span>
+                      )}
+                    </div>
+                    <h2 class="timeline-title">{activity.title}</h2>
+                    {activity.summary && (
+                      <p class="timeline-summary">{activity.summary}</p>
+                    )}
+                    <span class="timeline-more">자세히 보기 →</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .year-group {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 0 3rem;
+    margin-bottom: 4rem;
+  }
+
+  .year-label {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-style: italic;
+    color: var(--gold);
+    line-height: 1;
+    padding-top: 0.4rem;
+    position: sticky;
+    top: calc(var(--nav-height) + 2rem);
+    align-self: start;
+  }
+
+  .timeline {
+    border-left: 1px solid var(--cream-dark);
+    padding-left: 2rem;
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: 2.5rem;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .timeline-item:last-child { padding-bottom: 0; }
+
+  .timeline-dot {
+    position: absolute;
+    left: -2.4rem;
+    top: 0.5rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--green-deep);
+    border: 2px solid var(--white);
+    outline: 1px solid var(--green-deep);
+    transition: transform 0.2s;
+  }
+
+  .timeline-item:hover .timeline-dot {
+    transform: scale(1.5);
+    background-color: var(--gold);
+    outline-color: var(--gold);
+  }
+
+  .timeline-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .timeline-date {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: var(--gray);
+  }
+
+  .timeline-cat {
+    font-size: 0.65rem;
+    padding: 0.2em 0.6em;
+    border-radius: 2px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  .cat--orange { background-color: #fff3e0; color: #e65100; }
+  .cat--yellow { background-color: #fffde7; color: #f57f17; }
+  .cat--purple { background-color: #f3e5f5; color: #6a1b9a; }
+  .cat--blue   { background-color: #e3f2fd; color: #0d47a1; }
+  .cat--gray   { background-color: #f5f5f5; color: #424242; }
+
+  .timeline-title {
+    font-size: 1.3rem;
+    color: var(--green-deep);
+    margin-bottom: 0.5rem;
+    transition: color 0.2s;
+  }
+
+  .timeline-item:hover .timeline-title { color: var(--gold); }
+
+  .timeline-summary {
+    font-size: 0.88rem;
+    color: var(--gray);
+    line-height: 1.7;
+    max-width: 600px;
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .timeline-more {
+    font-size: 0.78rem;
+    color: var(--green-mid);
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 0.1em;
+  }
+
+  @media (max-width: 768px) {
+    .year-group { grid-template-columns: 1fr; gap: 1rem; }
+    .year-label { position: static; font-size: 2rem; }
+    .timeline { padding-left: 1.5rem; }
+    .timeline-dot { left: -1.9rem; }
+  }
+</style>

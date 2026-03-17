@@ -1,0 +1,241 @@
+---
+import { Client } from '@notionhq/client';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+
+export async function getStaticPaths() {
+  const notion = new Client({ auth: import.meta.env.NOTION_API_KEY });
+  const response = await notion.dataSources.query({
+    data_source_id: '3266d57b-1f96-8104-8750-000b5a0fb69b',
+  });
+  return response.results.map((page: any) => ({
+    params: { id: page.id },
+  }));
+}
+
+const { id } = Astro.params;
+const notion = new Client({ auth: import.meta.env.NOTION_API_KEY });
+
+const page = await notion.pages.retrieve({ page_id: id! }) as any;
+const props = page.properties;
+const title = props['제목']?.title?.[0]?.plain_text ?? '';
+const date = props['날짜']?.date?.start ?? '';
+const year = props['연도']?.select?.name ?? '';
+const category = props['구분']?.select?.name ?? '';
+const summary = props['요약']?.rich_text?.[0]?.plain_text ?? '';
+
+const blocksRes = await notion.blocks.children.list({ block_id: id! });
+const blocks = blocksRes.results as any[];
+
+function renderRichText(richTexts: any[]): string {
+  return richTexts.map(rt => {
+    let text = rt.plain_text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    if (rt.annotations?.bold) text = `<strong>${text}</strong>`;
+    if (rt.annotations?.italic) text = `<em>${text}</em>`;
+    if (rt.annotations?.underline) text = `<u>${text}</u>`;
+    if (rt.annotations?.code) text = `<code>${text}</code>`;
+    if (rt.href) text = `<a href="${rt.href}" target="_blank" rel="noopener">${text}</a>`;
+    return text;
+  }).join('');
+}
+
+function renderBlock(block: any): string {
+  switch (block.type) {
+    case 'paragraph':
+      return `<p>${renderRichText(block.paragraph.rich_text)}</p>`;
+    case 'heading_1':
+      return `<h2>${renderRichText(block.heading_1.rich_text)}</h2>`;
+    case 'heading_2':
+      return `<h3>${renderRichText(block.heading_2.rich_text)}</h3>`;
+    case 'heading_3':
+      return `<h4>${renderRichText(block.heading_3.rich_text)}</h4>`;
+    case 'bulleted_list_item':
+      return `<li>${renderRichText(block.bulleted_list_item.rich_text)}</li>`;
+    case 'numbered_list_item':
+      return `<li>${renderRichText(block.numbered_list_item.rich_text)}</li>`;
+    case 'quote':
+      return `<blockquote>${renderRichText(block.quote.rich_text)}</blockquote>`;
+    case 'divider':
+      return `<hr />`;
+    case 'image': {
+      const url = block.image.type === 'external'
+        ? block.image.external.url
+        : block.image.file.url;
+      const caption = block.image.caption?.[0]?.plain_text ?? '';
+      return `<figure><img src="${url}" alt="${caption}" loading="lazy" />${caption ? `<figcaption>${caption}</figcaption>` : ''}</figure>`;
+    }
+    case 'callout':
+      return `<div class="callout">${block.callout.icon?.emoji ?? ''} ${renderRichText(block.callout.rich_text)}</div>`;
+    default:
+      return '';
+  }
+}
+
+let html = '';
+let inBullet = false;
+let inNumbered = false;
+
+for (const block of blocks) {
+  if (block.type === 'bulleted_list_item') {
+    if (!inBullet) { html += '<ul>'; inBullet = true; }
+    html += renderBlock(block);
+  } else {
+    if (inBullet) { html += '</ul>'; inBullet = false; }
+    if (block.type === 'numbered_list_item') {
+      if (!inNumbered) { html += '<ol>'; inNumbered = true; }
+      html += renderBlock(block);
+    } else {
+      if (inNumbered) { html += '</ol>'; inNumbered = false; }
+      html += renderBlock(block);
+    }
+  }
+}
+if (inBullet) html += '</ul>';
+if (inNumbered) html += '</ol>';
+
+const formattedDate = date
+  ? new Date(date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+  : '';
+---
+
+<BaseLayout title={title} description={summary || title}>
+  <Header />
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <a href="/activities" class="back-link">← 주요 활동</a>
+        <div class="hero-meta">
+          {formattedDate && <span class="hero-date">{formattedDate}</span>}
+          {category && <span class="hero-cat">{category}</span>}
+        </div>
+        <h1 class="page-hero__title">{title}</h1>
+        {summary && <p class="page-hero__desc">{summary}</p>}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <article class="activity-content" set:html={html} />
+
+        <div class="article-footer">
+          <a href="/activities" class="back-btn">← 목록으로</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .back-link {
+    display: inline-block;
+    font-size: 0.82rem;
+    color: rgba(244, 239, 230, 0.6);
+    margin-bottom: 1.5rem;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--cream); }
+
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-date {
+    font-size: 0.8rem;
+    color: rgba(244, 239, 230, 0.6);
+    letter-spacing: 0.05em;
+  }
+
+  .hero-cat {
+    font-size: 0.68rem;
+    padding: 0.2em 0.7em;
+    border: 1px solid rgba(210, 172, 83, 0.4);
+    color: var(--gold);
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+  }
+
+  .activity-content {
+    max-width: 720px;
+    margin: 0 auto;
+    font-size: 1rem;
+    line-height: 1.9;
+    color: var(--charcoal);
+  }
+
+  .activity-content :global(h2) {
+    font-size: 1.8rem;
+    color: var(--green-deep);
+    margin: 2.5rem 0 1rem;
+    font-family: var(--font-display);
+  }
+  .activity-content :global(h3) {
+    font-size: 1.4rem;
+    color: var(--green-deep);
+    margin: 2rem 0 0.75rem;
+    font-family: var(--font-display);
+  }
+  .activity-content :global(h4) {
+    font-size: 1.1rem;
+    color: var(--green-deep);
+    margin: 1.5rem 0 0.5rem;
+  }
+  .activity-content :global(p) { margin-bottom: 1.2rem; }
+  .activity-content :global(ul),
+  .activity-content :global(ol) { padding-left: 1.5rem; margin-bottom: 1.2rem; }
+  .activity-content :global(li) { margin-bottom: 0.4rem; }
+  .activity-content :global(blockquote) {
+    border-left: 3px solid var(--gold);
+    padding: 0.75rem 1.5rem;
+    margin: 1.5rem 0;
+    background-color: var(--cream);
+    color: var(--gray);
+    font-style: italic;
+  }
+  .activity-content :global(hr) {
+    border: none;
+    border-top: 1px solid var(--cream-dark);
+    margin: 2rem 0;
+  }
+  .activity-content :global(figure) { margin: 2rem 0; }
+  .activity-content :global(img) { width: 100%; border-radius: 4px; }
+  .activity-content :global(figcaption) {
+    font-size: 0.82rem;
+    color: var(--gray);
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+  .activity-content :global(.callout) {
+    background-color: var(--cream);
+    border-left: 3px solid var(--green-mid);
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .activity-content :global(a) {
+    color: var(--green-mid);
+    text-decoration: underline;
+  }
+
+  .article-footer {
+    max-width: 720px;
+    margin: 3rem auto 0;
+    padding-top: 2rem;
+    border-top: 1px solid var(--cream-dark);
+  }
+
+  .back-btn {
+    font-size: 0.85rem;
+    color: var(--green-mid);
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 0.1em;
+    transition: color 0.2s;
+  }
+  .back-btn:hover { color: var(--gold); }
+</style>
