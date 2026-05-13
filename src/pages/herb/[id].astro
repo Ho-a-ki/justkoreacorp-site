@@ -2,94 +2,17 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { queryDataSource, getPage, getPageBlocks } from '../../lib/notion';
+import herbs from '../../data/herbs.json';
 
-export async function getStaticPaths() {
-  const response = await queryDataSource('4f6d8d03-3a27-4cca-9007-06004a532702');
-  return response.results.map((page: any) => ({
-    params: { id: page.id },
-  }));
+export function getStaticPaths() {
+  return herbs.map(herb => ({ params: { id: herb.id } }));
 }
 
 const { id } = Astro.params;
-
-const page = await getPage(id!) as any;
-const props = page.properties;
-const name = props['이름']?.title?.[0]?.plain_text ?? '';
-const tags = props['태그']?.multi_select?.map((t: any) => t.name) ?? [];
-
-const blocks = await getPageBlocks(id!);
-
-// 블록 → HTML 변환
-function renderRichText(richTexts: any[]): string {
-  return richTexts.map(rt => {
-    let text = rt.plain_text;
-    if (rt.annotations?.bold) text = `<strong>${text}</strong>`;
-    if (rt.annotations?.italic) text = `<em>${text}</em>`;
-    if (rt.annotations?.underline) text = `<u>${text}</u>`;
-    if (rt.annotations?.code) text = `<code>${text}</code>`;
-    if (rt.href) text = `<a href="${rt.href}" target="_blank" rel="noopener">${text}</a>`;
-    return text;
-  }).join('');
-}
-
-function renderBlock(block: any): string {
-  switch (block.type) {
-    case 'paragraph':
-      return `<p>${renderRichText(block.paragraph.rich_text)}</p>`;
-    case 'heading_1':
-      return `<h2>${renderRichText(block.heading_1.rich_text)}</h2>`;
-    case 'heading_2':
-      return `<h3>${renderRichText(block.heading_2.rich_text)}</h3>`;
-    case 'heading_3':
-      return `<h4>${renderRichText(block.heading_3.rich_text)}</h4>`;
-    case 'bulleted_list_item':
-      return `<li>${renderRichText(block.bulleted_list_item.rich_text)}</li>`;
-    case 'numbered_list_item':
-      return `<li>${renderRichText(block.numbered_list_item.rich_text)}</li>`;
-    case 'quote':
-      return `<blockquote>${renderRichText(block.quote.rich_text)}</blockquote>`;
-    case 'divider':
-      return `<hr />`;
-    case 'image': {
-      const url = block.image.type === 'external'
-        ? block.image.external.url
-        : block.image.file.url;
-      const caption = block.image.caption?.[0]?.plain_text ?? '';
-      return `<figure><img src="${url}" alt="${caption}" />${caption ? `<figcaption>${caption}</figcaption>` : ''}</figure>`;
-    }
-    case 'callout':
-      return `<div class="callout">${block.callout.icon?.emoji ?? ''} ${renderRichText(block.callout.rich_text)}</div>`;
-    default:
-      return '';
-  }
-}
-
-// 리스트 아이템 묶기
-let html = '';
-let inBulletList = false;
-let inNumberedList = false;
-
-for (const block of blocks) {
-  if (block.type === 'bulleted_list_item') {
-    if (!inBulletList) { html += '<ul>'; inBulletList = true; }
-    html += renderBlock(block);
-  } else {
-    if (inBulletList) { html += '</ul>'; inBulletList = false; }
-    if (block.type === 'numbered_list_item') {
-      if (!inNumberedList) { html += '<ol>'; inNumberedList = true; }
-      html += renderBlock(block);
-    } else {
-      if (inNumberedList) { html += '</ol>'; inNumberedList = false; }
-      html += renderBlock(block);
-    }
-  }
-}
-if (inBulletList) html += '</ul>';
-if (inNumberedList) html += '</ol>';
+const herb = herbs.find(h => h.id === id)!;
 ---
 
-<BaseLayout title={name} description={`${name} — 허브 백과사전`}>
+<BaseLayout title={herb.name} description={`${herb.name} — 허브 백과사전`}>
   <Header />
 
   <main>
@@ -97,15 +20,15 @@ if (inNumberedList) html += '</ol>';
       <div class="container">
         <a href="/herb" class="back-link">← 허브 백과사전</a>
         <div class="hero-tags">
-          {tags.map((tag: string) => <span class="tag">{tag}</span>)}
+          {herb.tags.map((tag: string) => <span class="tag">{tag}</span>)}
         </div>
-        <h1 class="page-hero__title">{name}</h1>
+        <h1 class="page-hero__title">{herb.name}</h1>
       </div>
     </section>
 
     <section class="section">
       <div class="container">
-        <div class="herb-content" set:html={html} />
+        <div class="herb-content" set:html={herb.content} />
       </div>
     </section>
   </main>

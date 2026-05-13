@@ -2,21 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { queryDataSource } from '../../lib/notion';
-
-const response = await queryDataSource('3266d57b-1f96-8104-8750-000b5a0fb69b', [{ property: '날짜', direction: 'descending' }]);
-
-const activities = response.results.map((page: any) => {
-  const props = page.properties;
-  return {
-    id: page.id,
-    title: props['제목']?.title?.[0]?.plain_text ?? '',
-    date: props['날짜']?.date?.start ?? '',
-    year: props['연도']?.select?.name ?? '',
-    category: props['구분']?.select?.name ?? '',
-    summary: props['요약']?.rich_text?.[0]?.plain_text ?? '',
-  };
-});
+import activities from '../../data/activities.json';
 
 const years = [...new Set(activities.map(a => a.year).filter(Boolean))].sort((a, b) => Number(b) - Number(a));
 
@@ -50,7 +36,7 @@ const categoryColors: Record<string, string> = {
               {activities.filter(a => a.year === year).map(activity => (
                 <a href={`/activities/${activity.id}`} class="timeline-item">
                   <div class="timeline-dot"></div>
-                  <div class="timeline-content">
+                  <div class="timeline-card">
                     <div class="timeline-meta">
                       {activity.date && (
                         <span class="timeline-date">
@@ -58,16 +44,13 @@ const categoryColors: Record<string, string> = {
                         </span>
                       )}
                       {activity.category && (
-                        <span class={`timeline-cat cat--${categoryColors[activity.category] ?? 'gray'}`}>
+                        <span class={`timeline-cat timeline-cat--${categoryColors[activity.category] ?? 'gray'}`}>
                           {activity.category}
                         </span>
                       )}
                     </div>
-                    <h2 class="timeline-title">{activity.title}</h2>
-                    {activity.summary && (
-                      <p class="timeline-summary">{activity.summary}</p>
-                    )}
-                    <span class="timeline-more">자세히 보기 →</span>
+                    <h3 class="timeline-title">{activity.title}</h3>
+                    {activity.summary && <p class="timeline-summary">{activity.summary}</p>}
                   </div>
                 </a>
               ))}
@@ -84,106 +67,97 @@ const categoryColors: Record<string, string> = {
 <style>
   .year-group {
     display: grid;
-    grid-template-columns: 80px 1fr;
-    gap: 0 3rem;
-    margin-bottom: 4rem;
+    grid-template-columns: 120px 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
   }
 
   .year-label {
-    font-family: var(--font-display);
     font-size: 2.5rem;
-    color: var(--gold);
-    line-height: 1;
-    padding-top: 0.4rem;
+    font-weight: 700;
+    color: var(--green-deep);
     position: sticky;
     top: calc(var(--nav-height) + 2rem);
     align-self: start;
   }
 
   .timeline {
-    border-left: 1px solid var(--cream-dark);
+    position: relative;
     padding-left: 2rem;
+    border-left: 2px solid var(--cream-dark);
   }
 
   .timeline-item {
-    position: relative;
-    padding-bottom: 2.5rem;
     display: block;
+    position: relative;
+    margin-bottom: 1.5rem;
     text-decoration: none;
-    color: inherit;
   }
-
-  .timeline-item:last-child { padding-bottom: 0; }
 
   .timeline-dot {
     position: absolute;
-    left: -2.4rem;
+    left: -2.45rem;
     top: 0.5rem;
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    background-color: var(--green-deep);
+    background-color: var(--green-mid);
     border: 2px solid var(--white);
-    outline: 1px solid var(--green-deep);
-    transition: transform 0.2s;
   }
 
-  .timeline-item:hover .timeline-dot {
-    transform: scale(1.5);
-    background-color: var(--gold);
-    outline-color: var(--gold);
+  .timeline-card {
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--cream-dark);
+    border-radius: 4px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .timeline-item:hover .timeline-card {
+    border-color: var(--green-light);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   }
 
   .timeline-meta {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     margin-bottom: 0.5rem;
   }
 
   .timeline-date {
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
+    font-size: 0.78rem;
     color: var(--gray);
   }
 
   .timeline-cat {
-    font-size: 0.65rem;
-    padding: 0.2em 0.6em;
+    font-size: 0.6rem;
+    padding: 0.15em 0.5em;
     border-radius: 2px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.05em;
   }
 
-  .cat--orange { background-color: #fff3e0; color: #e65100; }
-  .cat--yellow { background-color: #fffde7; color: #f57f17; }
-  .cat--purple { background-color: #f3e5f5; color: #6a1b9a; }
-  .cat--blue   { background-color: #e3f2fd; color: #0d47a1; }
-  .cat--gray   { background-color: #f5f5f5; color: #424242; }
+  .timeline-cat--orange { background: #fff3e0; color: #e65100; }
+  .timeline-cat--yellow { background: #fffde7; color: #f57f17; }
+  .timeline-cat--purple { background: #f3e5f5; color: #7b1fa2; }
+  .timeline-cat--blue { background: #e3f2fd; color: #1565c0; }
+  .timeline-cat--gray { background: var(--cream); color: var(--gray); }
 
   .timeline-title {
-    font-size: 1.3rem;
-    color: var(--green-deep);
-    margin-bottom: 0.5rem;
-    transition: color 0.2s;
+    font-size: 0.95rem;
+    color: var(--charcoal);
+    line-height: 1.5;
   }
-
-  .timeline-item:hover .timeline-title { color: var(--gold); }
 
   .timeline-summary {
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     color: var(--gray);
-    line-height: 1.7;
-    max-width: 600px;
-    margin-bottom: 0.75rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    margin-top: 0.3rem;
+    line-height: 1.6;
   }
 
-  .timeline-more {
-    font-size: 0.78rem;
+  .back-btn {
+    font-size: 0.85rem;
     color: var(--green-mid);
     border-bottom: 1px solid currentColor;
     padding-bottom: 0.1em;

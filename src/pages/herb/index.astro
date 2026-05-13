@@ -2,34 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { queryDataSource, getFirstImage } from '../../lib/notion';
-
-const response = await queryDataSource('4f6d8d03-3a27-4cca-9007-06004a532702', [{ property: '이름', direction: 'ascending' }]);
-
-const rawHerbs = response.results.map((page: any) => {
-  const props = page.properties;
-  const cover = page.cover?.type === 'external'
-    ? page.cover.external.url
-    : page.cover?.file?.url ?? '';
-  return {
-    id: page.id,
-    name: props['이름']?.title?.[0]?.plain_text ?? '',
-    tags: props['태그']?.multi_select?.map((t: any) => t.name) ?? [],
-    thumbnail: cover,
-  };
-});
-
-const herbs: typeof rawHerbs = [];
-for (let i = 0; i < rawHerbs.length; i += 3) {
-  const batch = rawHerbs.slice(i, i + 3);
-  const resolved = await Promise.all(
-    batch.map(async (h) => ({
-      ...h,
-      thumbnail: h.thumbnail || await getFirstImage(h.id),
-    }))
-  );
-  herbs.push(...resolved);
-}
+import herbs from '../../data/herbs.json';
 ---
 
 <BaseLayout title="허브 백과사전" description="다양한 허브의 효능과 특성을 알아보세요.">
@@ -46,30 +19,26 @@ for (let i = 0; i < rawHerbs.length; i += 3) {
 
     <section class="section section--cream">
       <div class="container">
-        {herbs.length === 0 ? (
-          <p class="empty">등록된 허브가 없습니다.</p>
-        ) : (
-          <div class="herb-grid">
-            {herbs.map(herb => (
-              <a href={`/herb/${herb.id}`} class="herb-card" data-page-id={herb.id}>
-                <div class="herb-card__thumb">
-                  <span class="material-symbols-outlined herb-card__icon">spa</span>
-                  {herb.thumbnail && (
-                    <img data-src={herb.thumbnail} alt={herb.name} decoding="async" class="herb-card__img" />
-                  )}
+        <div class="herb-grid">
+          {herbs.map(herb => (
+            <a href={`/herb/${herb.id}`} class="herb-card">
+              <div class="herb-card__thumb">
+                <span class="material-symbols-outlined herb-card__icon">spa</span>
+                {herb.thumbnail && (
+                  <img src={herb.thumbnail} alt={herb.name} loading="lazy" decoding="async" class="herb-card__img" />
+                )}
+              </div>
+              <div class="herb-card__body">
+                <div class="herb-card__tags">
+                  {herb.tags.map((tag: string) => (
+                    <span class="herb-card__tag">{tag}</span>
+                  ))}
                 </div>
-                <div class="herb-card__body">
-                  <div class="herb-card__tags">
-                    {herb.tags.map((tag: string) => (
-                      <span class="herb-card__tag">{tag}</span>
-                    ))}
-                  </div>
-                  <h3 class="herb-card__name">{herb.name}</h3>
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
+                <h3 class="herb-card__name">{herb.name}</h3>
+              </div>
+            </a>
+          ))}
+        </div>
       </div>
     </section>
   </main>
@@ -115,7 +84,6 @@ for (let i = 0; i < rawHerbs.length; i += 3) {
     font-size: 3rem;
     color: var(--green-mid);
     opacity: 0.3;
-    transition: opacity 0.3s;
   }
 
   .herb-card__img {
@@ -124,17 +92,11 @@ for (let i = 0; i < rawHerbs.length; i += 3) {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0;
-    transition: opacity 0.4s ease;
   }
 
-  .herb-card__img.is-loaded {
-    opacity: 1;
-  }
-
-  .herb-card:hover .herb-card__img.is-loaded {
+  .herb-card:hover .herb-card__img {
     transform: scale(1.05);
-    transition: opacity 0.4s ease, transform 0.3s ease;
+    transition: transform 0.3s ease;
   }
 
   .herb-card__body {
@@ -167,11 +129,6 @@ for (let i = 0; i < rawHerbs.length; i += 3) {
     line-height: 1.5;
   }
 
-  .empty {
-    color: var(--gray);
-    font-size: 0.95rem;
-  }
-
   @media (width <= 1024px) {
     .herb-grid { grid-template-columns: repeat(3, 1fr); }
   }
@@ -181,25 +138,6 @@ for (let i = 0; i < rawHerbs.length; i += 3) {
   }
 
   @media (width <= 480px) {
-    .herb-grid { grid-template-columns: 1fr; }
+    .herb-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
   }
 </style>
-
-<script>
-  const images = Array.from(document.querySelectorAll<HTMLImageElement>('.herb-card__img[data-src]'));
-  let i = 0;
-  function loadNext() {
-    if (i >= images.length) return;
-    const img = images[i++];
-    img.onload = () => {
-      img.classList.add('is-loaded');
-      loadNext();
-    };
-    img.onerror = () => loadNext();
-    img.src = img.dataset.src!;
-  }
-  loadNext();
-  loadNext();
-  loadNext();
-  loadNext();
-</script>

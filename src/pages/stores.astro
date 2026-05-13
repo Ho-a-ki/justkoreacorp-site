@@ -2,22 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { queryDataSource } from '../lib/notion';
-
-const response = await queryDataSource('f5081f2a-6393-44a4-9f8c-2bedaa2bb2a0', [{ property: '이름', direction: 'ascending' }]);
-
-const stores = response.results.map((page: any) => {
-  const props = page.properties;
-  return {
-    id: page.id,
-    name: props['이름']?.title?.[0]?.plain_text ?? '',
-    address: props['주소']?.rich_text?.[0]?.plain_text ?? '',
-    phone: props['전화']?.rich_text?.[0]?.plain_text ?? '',
-    tag: props['태그']?.select?.name ?? '',
-    type: props['매장유형']?.select?.name ?? '',
-    spa: props['스파 여부']?.select?.name ?? '',
-  };
-});
+import stores from '../data/stores.json';
 ---
 
 <BaseLayout title="스토어" description="유스트코리아 스토어 위치와 운영 정보를 안내합니다.">
@@ -40,17 +25,32 @@ const stores = response.results.map((page: any) => {
           <div class="store-grid">
             {stores.map(store => (
               <div class="store-card">
-                <div class="store-card__top">
-                  {store.tag && <p class="store-card__region">{store.tag}</p>}
+                <div class="store-card__header">
+                  <h3 class="store-card__name">{store.name}</h3>
                   <div class="store-card__badges">
-                    {store.type && <span class="badge badge--type">{store.type}</span>}
-                    {store.spa && <span class="badge badge--spa">스파</span>}
+                    {store.tag && <span class="store-badge">{store.tag}</span>}
+                    {store.spa === '있음' && <span class="store-badge store-badge--spa">SPA</span>}
                   </div>
                 </div>
-                <h2 class="store-card__name">{store.name}</h2>
-                <div class="store-card__info">
-                  {store.address && <p>📍 {store.address}</p>}
-                  {store.phone && <p>📞 {store.phone}</p>}
+                <div class="store-card__body">
+                  {store.address && (
+                    <p class="store-card__info">
+                      <span class="material-symbols-outlined">location_on</span>
+                      {store.address}
+                    </p>
+                  )}
+                  {store.phone && (
+                    <p class="store-card__info">
+                      <span class="material-symbols-outlined">call</span>
+                      {store.phone}
+                    </p>
+                  )}
+                  {store.type && (
+                    <p class="store-card__info">
+                      <span class="material-symbols-outlined">storefront</span>
+                      {store.type}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
@@ -67,71 +67,74 @@ const stores = response.results.map((page: any) => {
   .store-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    gap: 1.2rem;
   }
 
   .store-card {
     border: 1px solid var(--cream-dark);
-    padding: 2rem;
-    transition: border-color 0.2s, transform 0.2s;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
 
   .store-card:hover {
-    border-color: var(--green-mid);
-    transform: translateY(-4px);
+    border-color: var(--green-light);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
   }
 
-  .store-card__top {
+  .store-card__header {
+    padding: 1.2rem 1.2rem 0.8rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.75rem;
+    justify-content: space-between;
+    gap: 0.5rem;
   }
 
-  .store-card__region {
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold);
-    font-weight: 500;
+  .store-card__name {
+    font-size: 1rem;
+    color: var(--green-deep);
   }
 
   .store-card__badges {
     display: flex;
-    gap: 0.4rem;
+    gap: 0.3rem;
   }
 
-  .badge {
-    font-size: 0.65rem;
-    padding: 0.2em 0.6em;
+  .store-badge {
+    font-size: 0.6rem;
+    padding: 0.15em 0.5em;
     border-radius: 2px;
-    font-weight: 500;
+    background-color: var(--cream);
+    color: var(--green-mid);
+    font-weight: 600;
     letter-spacing: 0.05em;
   }
 
-  .badge--type {
-    background-color: var(--cream-dark);
-    color: var(--charcoal);
+  .store-badge--spa {
+    background-color: var(--green-mid);
+    color: #fff;
   }
 
-  .badge--spa {
-    background-color: var(--green-deep);
-    color: #ffffff;
-  }
-
-  .store-card__name {
-    font-size: 1.6rem;
-    color: var(--green-deep);
-    margin-bottom: 1.25rem;
+  .store-card__body {
+    padding: 0 1.2rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
   }
 
   .store-card__info {
     display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
+    align-items: flex-start;
+    gap: 0.5rem;
     font-size: 0.85rem;
     color: var(--gray);
-    line-height: 1.6;
+  }
+
+  .store-card__info .material-symbols-outlined {
+    font-size: 1rem;
+    color: var(--green-mid);
+    flex-shrink: 0;
+    margin-top: 0.15rem;
   }
 
   .empty {

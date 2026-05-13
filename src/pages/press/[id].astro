@@ -2,112 +2,40 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { queryDataSource, getPage, getPageBlocks } from '../../lib/notion';
+import pressItems from '../../data/press.json';
+import celebItems from '../../data/celeb.json';
 
-export async function getStaticPaths() {
-  const [pressRes, celebRes] = await Promise.all([
-    queryDataSource('b7e5d934-ade8-4c90-93ca-43e7e40ebefb'),
-    queryDataSource('0f8d5933-4073-4607-9f6d-87a0b2e7c4ce'),
-  ]);
-  const allPages = [...pressRes.results, ...celebRes.results];
-  return allPages.map((page: any) => ({
-    params: { id: page.id },
-  }));
+const allItems = [...pressItems, ...celebItems];
+
+export function getStaticPaths() {
+  const press = import('../../data/press.json').then(m => m.default);
+  const celeb = import('../../data/celeb.json').then(m => m.default);
+  return Promise.all([press, celeb]).then(([p, c]) =>
+    [...p, ...c].map(item => ({ params: { id: item.id } }))
+  );
 }
 
 const { id } = Astro.params;
-
-const page = await getPage(id!) as any;
-const props = page.properties;
-const name = props['이름']?.title?.[0]?.plain_text ?? '';
-const tags = props['태그']?.multi_select?.map((t: any) => t.name) ?? [];
-
-const blocks = await getPageBlocks(id!);
-
-function renderRichText(richTexts: any[]): string {
-  return richTexts.map(rt => {
-    let text = rt.plain_text;
-    if (rt.annotations?.bold) text = `<strong>${text}</strong>`;
-    if (rt.annotations?.italic) text = `<em>${text}</em>`;
-    if (rt.annotations?.underline) text = `<u>${text}</u>`;
-    if (rt.annotations?.code) text = `<code>${text}</code>`;
-    if (rt.href) text = `<a href="${rt.href}" target="_blank" rel="noopener">${text}</a>`;
-    return text;
-  }).join('');
-}
-
-function renderBlock(block: any): string {
-  switch (block.type) {
-    case 'paragraph':
-      return `<p>${renderRichText(block.paragraph.rich_text)}</p>`;
-    case 'heading_1':
-      return `<h2>${renderRichText(block.heading_1.rich_text)}</h2>`;
-    case 'heading_2':
-      return `<h3>${renderRichText(block.heading_2.rich_text)}</h3>`;
-    case 'heading_3':
-      return `<h4>${renderRichText(block.heading_3.rich_text)}</h4>`;
-    case 'bulleted_list_item':
-      return `<li>${renderRichText(block.bulleted_list_item.rich_text)}</li>`;
-    case 'numbered_list_item':
-      return `<li>${renderRichText(block.numbered_list_item.rich_text)}</li>`;
-    case 'quote':
-      return `<blockquote>${renderRichText(block.quote.rich_text)}</blockquote>`;
-    case 'divider':
-      return `<hr />`;
-    case 'image': {
-      const url = block.image.type === 'external'
-        ? block.image.external.url
-        : block.image.file.url;
-      const caption = block.image.caption?.[0]?.plain_text ?? '';
-      return `<figure><img src="${url}" alt="${caption}" />${caption ? `<figcaption>${caption}</figcaption>` : ''}</figure>`;
-    }
-    case 'callout':
-      return `<div class="callout">${block.callout.icon?.emoji ?? ''} ${renderRichText(block.callout.rich_text)}</div>`;
-    default:
-      return '';
-  }
-}
-
-let html = '';
-let inBulletList = false;
-let inNumberedList = false;
-
-for (const block of blocks) {
-  if (block.type === 'bulleted_list_item') {
-    if (!inBulletList) { html += '<ul>'; inBulletList = true; }
-    html += renderBlock(block);
-  } else {
-    if (inBulletList) { html += '</ul>'; inBulletList = false; }
-    if (block.type === 'numbered_list_item') {
-      if (!inNumberedList) { html += '<ol>'; inNumberedList = true; }
-      html += renderBlock(block);
-    } else {
-      if (inNumberedList) { html += '</ol>'; inNumberedList = false; }
-      html += renderBlock(block);
-    }
-  }
-}
-if (inBulletList) html += '</ul>';
-if (inNumberedList) html += '</ol>';
+const item = allItems.find(i => i.id === id)!;
 ---
 
-<BaseLayout title={name} description={`${name} — Press & Public`}>
+<BaseLayout title={item.name} description={`${item.name} — 미디어`}>
   <Header />
 
   <main>
     <section class="page-hero">
       <div class="container">
-        <a href="/press" class="back-link">← Press & Public</a>
+        <a href="/press" class="back-link">← 미디어</a>
         <div class="hero-tags">
-          {tags.map((tag: string) => <span class="tag">{tag}</span>)}
+          {item.tags.map((tag: string) => <span class="tag">{tag}</span>)}
         </div>
-        <h1 class="page-hero__title">{name}</h1>
+        <h1 class="page-hero__title">{item.name}</h1>
       </div>
     </section>
 
     <section class="section">
       <div class="container">
-        <div class="press-content" set:html={html} />
+        <div class="press-content" set:html={item.content} />
       </div>
     </section>
   </main>
@@ -149,88 +77,18 @@ if (inNumberedList) html += '</ol>';
     color: var(--charcoal);
   }
 
-  .press-content :global(h2) {
-    font-size: 1.8rem;
-    color: var(--green-deep);
-    margin: 2.5rem 0 1rem;
-    font-family: var(--font-display);
-  }
-
-  .press-content :global(h3) {
-    font-size: 1.4rem;
-    color: var(--green-deep);
-    margin: 2rem 0 0.75rem;
-    font-family: var(--font-display);
-  }
-
-  .press-content :global(h4) {
-    font-size: 1.1rem;
-    color: var(--green-deep);
-    margin: 1.5rem 0 0.5rem;
-  }
-
-  .press-content :global(p) {
-    margin-bottom: 1.2rem;
-    color: var(--charcoal);
-  }
-
-  .press-content :global(ul),
-  .press-content :global(ol) {
-    padding-left: 1.5rem;
-    margin-bottom: 1.2rem;
-  }
-
-  .press-content :global(li) {
-    margin-bottom: 0.4rem;
-  }
-
-  .press-content :global(blockquote) {
-    border-left: 3px solid var(--gold);
-    padding: 0.75rem 1.5rem;
-    margin: 1.5rem 0;
-    background-color: var(--cream);
-    color: var(--gray);
-  }
-
-  .press-content :global(hr) {
-    border: none;
-    border-top: 1px solid var(--cream-dark);
-    margin: 2rem 0;
-  }
-
-  .press-content :global(figure) {
-    margin: 2rem 0;
-  }
-
-  .press-content :global(img) {
-    width: 100%;
-    border-radius: 4px;
-  }
-
-  .press-content :global(figcaption) {
-    font-size: 0.82rem;
-    color: var(--gray);
-    text-align: center;
-    margin-top: 0.5rem;
-  }
-
-  .press-content :global(code) {
-    background-color: var(--cream);
-    padding: 0.1em 0.4em;
-    border-radius: 2px;
-    font-size: 0.9em;
-  }
-
-  .press-content :global(.callout) {
-    background-color: var(--cream);
-    border-left: 3px solid var(--green-mid);
-    padding: 1rem 1.5rem;
-    margin: 1.5rem 0;
-    border-radius: 0 4px 4px 0;
-  }
-
-  .press-content :global(a) {
-    color: var(--green-mid);
-    text-decoration: underline;
-  }
+  .press-content :global(h2) { font-size: 1.8rem; color: var(--green-deep); margin: 2.5rem 0 1rem; font-family: var(--font-display); }
+  .press-content :global(h3) { font-size: 1.4rem; color: var(--green-deep); margin: 2rem 0 0.75rem; font-family: var(--font-display); }
+  .press-content :global(h4) { font-size: 1.1rem; color: var(--green-deep); margin: 1.5rem 0 0.5rem; }
+  .press-content :global(p) { margin-bottom: 1.2rem; color: var(--charcoal); }
+  .press-content :global(ul), .press-content :global(ol) { padding-left: 1.5rem; margin-bottom: 1.2rem; }
+  .press-content :global(li) { margin-bottom: 0.4rem; }
+  .press-content :global(blockquote) { border-left: 3px solid var(--gold); padding: 0.75rem 1.5rem; margin: 1.5rem 0; background-color: var(--cream); color: var(--gray); }
+  .press-content :global(hr) { border: none; border-top: 1px solid var(--cream-dark); margin: 2rem 0; }
+  .press-content :global(figure) { margin: 2rem 0; }
+  .press-content :global(img) { width: 100%; border-radius: 4px; }
+  .press-content :global(figcaption) { font-size: 0.82rem; color: var(--gray); text-align: center; margin-top: 0.5rem; }
+  .press-content :global(code) { background-color: var(--cream); padding: 0.1em 0.4em; border-radius: 2px; font-size: 0.9em; }
+  .press-content :global(.callout) { background-color: var(--cream); border-left: 3px solid var(--green-mid); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 4px 4px 0; }
+  .press-content :global(a) { color: var(--green-mid); text-decoration: underline; }
 </style>

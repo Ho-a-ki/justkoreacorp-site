@@ -296,6 +296,10 @@ const currentPath = Astro.url.pathname;
       display: none;
     }
 
+    .header.is-scrolled .header__mobile-menu {
+      top: calc(var(--nav-height) * 0.8);
+    }
+
     .header__mobile-menu {
       display: block;
       position: fixed;

@@ -2,74 +2,18 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { queryDataSource, getFirstImage } from '../../lib/notion';
-
-const PRESS_DS_ID = 'b7e5d934-ade8-4c90-93ca-43e7e40ebefb';
-const CELEB_DS_ID = '0f8d5933-4073-4607-9f6d-87a0b2e7c4ce';
-
-const [pressRes, celebRes] = await Promise.all([
-  queryDataSource(PRESS_DS_ID, [{ property: '생성일', direction: 'descending' }]),
-  queryDataSource(CELEB_DS_ID, [{ property: '생성일', direction: 'descending' }]),
-]);
-
-async function resolveWithImages<T extends { id: string; thumbnail: string }>(items: T[]): Promise<T[]> {
-  const results: T[] = [];
-  for (let i = 0; i < items.length; i += 3) {
-    const batch = items.slice(i, i + 3);
-    const resolved = await Promise.all(
-      batch.map(async (item) => ({
-        ...item,
-        thumbnail: item.thumbnail || await getFirstImage(item.id),
-      }))
-    );
-    results.push(...resolved);
-  }
-  return results;
-}
-
-const rawPressItems = pressRes.results.map((page: any) => {
-  const props = page.properties;
-  const cover = page.cover?.type === 'external'
-    ? page.cover.external.url
-    : page.cover?.file?.url ?? '';
-  return {
-    id: page.id,
-    name: props['이름']?.title?.[0]?.plain_text ?? '',
-    tags: props['태그']?.multi_select?.map((t: any) => t.name) ?? [],
-    date: props['생성일']?.created_time?.slice(0, 10) ?? '',
-    thumbnail: cover,
-  };
-});
-
-const rawCelebItems = celebRes.results.map((page: any) => {
-  const props = page.properties;
-  const cover = page.cover?.type === 'external'
-    ? page.cover.external.url
-    : page.cover?.file?.url ?? '';
-  return {
-    id: page.id,
-    name: props['이름']?.title?.[0]?.plain_text ?? '',
-    tags: props['태그']?.multi_select?.map((t: any) => t.name) ?? [],
-    url: props['URL']?.url ?? '',
-    date: props['생성일']?.created_time?.slice(0, 10) ?? '',
-    thumbnail: cover,
-  };
-});
-
-const [pressItems, celebItems] = await Promise.all([
-  resolveWithImages(rawPressItems),
-  resolveWithImages(rawCelebItems),
-]);
+import pressItems from '../../data/press.json';
+import celebItems from '../../data/celeb.json';
 ---
 
-<BaseLayout title="Press & Public" description="유스트코리아의 미디어 노출 및 셀럽 활동을 소개합니다.">
+<BaseLayout title="미디어" description="유스트코리아의 미디어 노출 및 셀럽 활동을 소개합니다.">
   <Header />
 
   <main>
     <section class="page-hero">
       <div class="container">
-        <p class="page-hero__label">Press & Public</p>
-        <h1 class="page-hero__title">Press &<br />Public</h1>
+        <p class="page-hero__label">Media</p>
+        <h1 class="page-hero__title">미디어</h1>
         <p class="page-hero__desc">미디어, 유튜브, 인플루언서와 함께하는 유스트코리아의 이야기</p>
       </div>
     </section>
@@ -82,11 +26,11 @@ const [pressItems, celebItems] = await Promise.all([
         ) : (
           <div class="press-grid">
             {pressItems.map(item => (
-              <a href={`/press/${item.id}`} class="press-card" data-page-id={item.id}>
+              <a href={`/press/${item.id}`} class="press-card">
                 <div class="press-card__thumb">
                   <span class="material-symbols-outlined press-card__icon">article</span>
                   {item.thumbnail && (
-                    <img data-src={item.thumbnail} alt={item.name} decoding="async" class="press-card__img" />
+                    <img src={item.thumbnail} alt={item.name} loading="lazy" decoding="async" class="press-card__img" />
                   )}
                 </div>
                 <div class="press-card__body">
@@ -110,14 +54,13 @@ const [pressItems, celebItems] = await Promise.all([
               <a
                 href={item.url || `/press/${item.id}`}
                 class="press-card"
-                data-page-id={item.id}
                 target={item.url ? '_blank' : undefined}
                 rel={item.url ? 'noopener' : undefined}
               >
                 <div class="press-card__thumb">
                   <span class="material-symbols-outlined press-card__icon">article</span>
                   {item.thumbnail && (
-                    <img data-src={item.thumbnail} alt={item.name} decoding="async" class="press-card__img" />
+                    <img src={item.thumbnail} alt={item.name} loading="lazy" decoding="async" class="press-card__img" />
                   )}
                 </div>
                 <div class="press-card__body">
@@ -187,17 +130,11 @@ const [pressItems, celebItems] = await Promise.all([
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0;
-    transition: opacity 0.4s ease;
   }
 
-  .press-card__img.is-loaded {
-    opacity: 1;
-  }
-
-  .press-card:hover .press-card__img.is-loaded {
+  .press-card:hover .press-card__img {
     transform: scale(1.05);
-    transition: opacity 0.4s ease, transform 0.3s ease;
+    transition: transform 0.3s ease;
   }
 
   .press-card__body {
@@ -227,22 +164,3 @@ const [pressItems, celebItems] = await Promise.all([
     .press-grid { grid-template-columns: 1fr; }
   }
 </style>
-
-<script>
-  const images = Array.from(document.querySelectorAll<HTMLImageElement>('.press-card__img[data-src]'));
-  let i = 0;
-  function loadNext() {
-    if (i >= images.length) return;
-    const img = images[i++];
-    img.onload = () => {
-      img.classList.add('is-loaded');
-      loadNext();
-    };
-    img.onerror = () => loadNext();
-    img.src = img.dataset.src!;
-  }
-  loadNext();
-  loadNext();
-  loadNext();
-  loadNext();
-</script>
