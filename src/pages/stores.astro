@@ -139,11 +139,11 @@ const stores = response.results.map((page: any) => {
     font-size: 0.95rem;
   }
 
-  @media (max-width: 1024px) {
+  @media (width <= 1024px) {
     .store-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
-  @media (max-width: 640px) {
+  @media (width <= 640px) {
     .store-grid { grid-template-columns: 1fr; }
   }
 </style>

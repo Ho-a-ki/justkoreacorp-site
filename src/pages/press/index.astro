@@ -215,15 +215,15 @@ const [pressItems, celebItems] = await Promise.all([
     font-size: 0.95rem;
   }
 
-  @media (max-width: 1024px) {
+  @media (width <= 1024px) {
     .press-grid { grid-template-columns: repeat(3, 1fr); }
   }
 
-  @media (max-width: 768px) {
+  @media (width <= 768px) {
     .press-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
-  @media (max-width: 480px) {
+  @media (width <= 480px) {
     .press-grid { grid-template-columns: 1fr; }
   }
 </style>

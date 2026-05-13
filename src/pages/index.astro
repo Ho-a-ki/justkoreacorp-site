@@ -534,7 +534,7 @@ import Footer from '../components/Footer.astro';
   .cta__inner .section-body { margin-bottom: 0; }
 
   /* Responsive */
-  @media (max-width: 1024px) {
+  @media (width <= 1024px) {
     .herbs__grid { grid-template-columns: repeat(3, 1fr); }
     .quicklinks__grid { grid-template-columns: repeat(2, 1fr); }
     .philosophy__layout { grid-template-columns: 1fr; }
@@ -542,7 +542,7 @@ import Footer from '../components/Footer.astro';
     .phi-img--bottle { display: none; }
   }
 
-  @media (max-width: 768px) {
+  @media (width <= 768px) {
     .brand__grid { grid-template-columns: 1fr; }
     .herbs__grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
     .herb-card__circle { width: 120px; height: 120px; }
