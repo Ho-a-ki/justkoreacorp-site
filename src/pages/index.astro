@@ -17,7 +17,7 @@ import Footer from '../components/Footer.astro';
         <h1 class="hero__title">Appenzell Herbal Power<br />for the Whole World</h1>
         <p class="hero__subtitle">아펜첼 허브의 힘이 전 세계에 전해집니다</p>
         <div class="hero__actions">
-          <a href="/stores" class="btn btn--hero">스토어 바로가기</a>
+          <a href="/stores" class="btn--hero">스토어 바로가기</a>
         </div>
       </div>
       <div class="hero__scroll">
@@ -209,11 +209,12 @@ import Footer from '../components/Footer.astro';
   }
 
   .hero__title {
+    font-family: 'Poppins', var(--font-display);
     font-size: clamp(2.5rem, 6vw, 4.5rem);
     color: #fff;
     margin-bottom: 2rem;
     line-height: 1.2;
-    font-weight: 800;
+    font-weight: 600;
     text-shadow: 0 2px 20px rgba(0,0,0,0.3);
   }
 
@@ -233,18 +234,22 @@ import Footer from '../components/Footer.astro';
 
   .btn--hero {
     display: inline-block;
-    padding: 1em 2.5em;
-    font-size: 0.9rem;
-    font-weight: 600;
-    background: var(--green-mid);
+    padding: 0.9em 2.4em;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    background: rgba(255, 255, 255, 0.15);
     color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 50px;
-    transition: background 0.2s;
+    backdrop-filter: blur(4px);
+    transition: background 0.25s, border-color 0.25s;
     text-decoration: none;
   }
 
   .btn--hero:hover {
-    background: var(--green-deep);
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.7);
   }
 
   .hero__scroll {
