@@ -1,0 +1,118 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="이용 약관" description="유스트코리아 웹사이트 이용 약관입니다.">
+  <Header />
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="page-hero__label">Terms of Service</p>
+        <h1 class="page-hero__title">이용 약관</h1>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="terms">
+
+          <h2>제1조 (목적)</h2>
+          <p>이 약관은 유스트코리아가 운영하는 웹사이트(이하 "사이트")의 이용에 관한 조건 및 절차, 회사와 이용자의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+
+          <h2>제2조 (약관의 효력 및 변경)</h2>
+          <ol>
+            <li>본 약관은 사이트에 게시하거나 기타의 방법으로 공지함으로써 효력을 발생합니다.</li>
+            <li>회사는 필요한 경우 관련 법령을 위반하지 않는 범위에서 본 약관을 변경할 수 있으며, 변경된 약관은 공지와 동시에 효력을 가집니다.</li>
+            <li>이용자는 변경된 약관에 동의하지 않을 경우 사이트 이용을 중단할 수 있으며, 이후에도 사이트를 이용하는 경우 변경된 약관에 동의한 것으로 간주됩니다.</li>
+          </ol>
+
+          <h2>제3조 (이용자의 의무)</h2>
+          <p>이용자는 사이트를 이용함에 있어 다음 각 호의 행위를 하여서는 안 됩니다.</p>
+          <ol>
+            <li>타인의 개인정보를 도용하거나 허위 정보를 기재하는 행위</li>
+            <li>회사 또는 제3자의 저작권 등 지식재산권을 침해하는 행위</li>
+            <li>공공질서 및 미풍양속에 반하는 행위</li>
+            <li>기타 관련 법령을 위반하는 행위</li>
+          </ol>
+
+          <h2>제4조 (사이트 이용의 제한 및 중단)</h2>
+          <ol>
+            <li>회사는 시스템 점검, 보수, 고장, 통신 장애 등의 사유로 사이트 제공을 일시 중단할 수 있습니다.</li>
+            <li>이용자가 본 약관을 위반한 경우 회사는 사전 통지 없이 사이트 이용을 제한하거나 차단할 수 있습니다.</li>
+          </ol>
+
+          <h2>제5조 (저작권 및 사용 제한)</h2>
+          <ol>
+            <li>회사가 작성한 콘텐츠(텍스트, 이미지, 동영상 등)에 대한 저작권은 회사에 있으며, 무단 복제·배포·전송·수정 등을 금지합니다.</li>
+            <li>이용자는 사이트의 정보를 회사의 사전 승인 없이 영리 목적으로 사용할 수 없습니다.</li>
+          </ol>
+
+          <h2>제6조 (면책 조항)</h2>
+          <ol>
+            <li>회사는 천재지변, 시스템 장애, 통신망 두절 등 불가항력적인 사유로 인한 사이트 이용 장애에 대해 책임을 지지 않습니다.</li>
+            <li>회사는 이용자가 사이트에 게재한 정보에 대해 신뢰 여부를 판단하거나 이용함으로써 발생한 손해에 대해 책임지지 않습니다.</li>
+            <li>회사는 외부 링크나 제휴 사이트에 대한 내용을 보장하지 않으며, 해당 사이트의 이용은 각 운영자의 약관에 따릅니다.</li>
+          </ol>
+
+          <h2>제7조 (개인정보 보호)</h2>
+          <p>회사는 이용자의 개인정보를 소중히 다루며, 관련 법령에 따라 적법하게 처리합니다.</p>
+          <p>자세한 사항은 사이트 내 게시된 「개인정보처리방침」을 따릅니다.</p>
+
+          <h2>제8조 (분쟁의 해결)</h2>
+          <ol>
+            <li>회사와 이용자 간 분쟁 발생 시 원활한 해결을 위해 상호 협의합니다.</li>
+            <li>협의가 이루어지지 않을 경우 민사소송법상의 관할 법원에 제소할 수 있습니다.</li>
+            <li>본 약관의 해석 및 적용은 대한민국 법률을 따릅니다.</li>
+          </ol>
+
+          <h2>부칙</h2>
+          <p>본 약관은 2024년 1월 1일부터 시행합니다.</p>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .terms {
+    max-width: 720px;
+    margin: 0 auto;
+    font-size: 0.95rem;
+    line-height: 1.9;
+    color: var(--charcoal);
+  }
+
+  .terms h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--green-deep);
+    margin: 2.5rem 0 0.8rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--cream-dark);
+  }
+
+  .terms h2:first-child {
+    margin-top: 0;
+  }
+
+  .terms p {
+    margin-bottom: 1rem;
+    color: var(--gray);
+  }
+
+  .terms ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .terms li {
+    margin-bottom: 0.5rem;
+    color: var(--gray);
+  }
+</style>

@@ -1,16 +1,10 @@
 ---
-import { Client } from '@notionhq/client';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+import { queryDataSource } from '../../lib/notion';
 
-const notion = new Client({ auth: import.meta.env.NOTION_API_KEY });
-const DATA_SOURCE_ID = '3266d57b-1f96-8104-8750-000b5a0fb69b';
-
-const response = await notion.dataSources.query({
-  data_source_id: DATA_SOURCE_ID,
-  sorts: [{ property: '날짜', direction: 'descending' }],
-});
+const response = await queryDataSource('3266d57b-1f96-8104-8750-000b5a0fb69b', [{ property: '날짜', direction: 'descending' }]);
 
 const activities = response.results.map((page: any) => {
   const props = page.properties;
@@ -35,15 +29,15 @@ const categoryColors: Record<string, string> = {
 };
 ---
 
-<BaseLayout title="주요 활동" description="저스트코리아의 연혁 및 주요 활동을 소개합니다.">
+<BaseLayout title="주요 활동" description="유스트코리아의 연혁 및 주요 활동을 소개합니다.">
   <Header />
 
   <main>
     <section class="page-hero">
       <div class="container">
         <p class="page-hero__label">Activities</p>
-        <h1 class="page-hero__title">연혁 및<br /><em>주요 활동</em></h1>
-        <p class="page-hero__desc">저스트코리아가 만들어가는 다양한 활동과 사회적 가치를 소개합니다.</p>
+        <h1 class="page-hero__title">연혁 및<br />주요 활동</h1>
+        <p class="page-hero__desc">유스트코리아가 만들어가는 다양한 활동과 사회적 가치를 소개합니다.</p>
       </div>
     </section>
 
@@ -98,7 +92,6 @@ const categoryColors: Record<string, string> = {
   .year-label {
     font-family: var(--font-display);
     font-size: 2.5rem;
-    font-style: italic;
     color: var(--gold);
     line-height: 1;
     padding-top: 0.4rem;

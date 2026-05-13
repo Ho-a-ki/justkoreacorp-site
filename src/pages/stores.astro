@@ -1,17 +1,10 @@
 ---
-import { Client } from '@notionhq/client';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { queryDataSource } from '../lib/notion';
 
-const notion = new Client({ auth: import.meta.env.NOTION_API_KEY });
-
-const DATA_SOURCE_ID = 'f5081f2a-6393-44a4-9f8c-2bedaa2bb2a0';
-
-const response = await notion.dataSources.query({
-  data_source_id: DATA_SOURCE_ID,
-  sorts: [{ property: '이름', direction: 'ascending' }],
-});
+const response = await queryDataSource('f5081f2a-6393-44a4-9f8c-2bedaa2bb2a0', [{ property: '이름', direction: 'ascending' }]);
 
 const stores = response.results.map((page: any) => {
   const props = page.properties;
@@ -27,7 +20,7 @@ const stores = response.results.map((page: any) => {
 });
 ---
 
-<BaseLayout title="스토어" description="저스트코리아 스토어 위치와 운영 정보를 안내합니다.">
+<BaseLayout title="스토어" description="유스트코리아 스토어 위치와 운영 정보를 안내합니다.">
   <Header />
 
   <main>
@@ -35,7 +28,7 @@ const stores = response.results.map((page: any) => {
       <div class="container">
         <p class="page-hero__label">Stores</p>
         <h1 class="page-hero__title">스토어</h1>
-        <p class="page-hero__desc">가까운 저스트코리아 스토어를 방문해보세요.</p>
+        <p class="page-hero__desc">가까운 유스트코리아 스토어를 방문해보세요.</p>
       </div>
     </section>
 

@@ -1,0 +1,157 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="개인정보처리방침" description="유스트코리아 개인정보처리방침입니다.">
+  <Header />
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="page-hero__label">Privacy Policy</p>
+        <h1 class="page-hero__title">개인정보처리방침</h1>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="policy">
+
+          <p class="policy__intro">유스트코리아는 「개인정보 보호법」 등 관련 법령에 따라 이용자의 개인정보를 보호하고, 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같은 방침을 수립·공개합니다.</p>
+
+          <h2>1. 개인정보의 수집 항목 및 수집 방법</h2>
+          <p>회사는 웹사이트를 통해 아래의 개인정보를 수집할 수 있습니다.</p>
+          <ul>
+            <li><strong>수집 항목:</strong> 이름, 연락처(이메일, 전화번호 등), 회사명, 문의 내용</li>
+            <li><strong>수집 방법:</strong> 홈페이지 내 '문의하기' 또는 '상담 신청' 등의 양식</li>
+          </ul>
+          <p class="policy__note">※ 일반적인 홈페이지 방문 시에는 별도의 개인정보를 수집하지 않으며, 이용자의 자발적인 입력을 통해서만 개인정보가 수집됩니다.</p>
+
+          <h2>2. 개인정보의 수집 및 이용 목적</h2>
+          <p>회사는 수집한 개인정보를 다음의 목적에 한해 사용합니다.</p>
+          <ul>
+            <li>고객 문의에 대한 회신 및 상담</li>
+            <li>서비스 개선 및 고객 응대 이력 관리</li>
+          </ul>
+
+          <h2>3. 개인정보의 보유 및 이용 기간</h2>
+          <ul>
+            <li>수집된 개인정보는 목적 달성 후 <strong>최대 3년 이내</strong> 또는 고객의 삭제 요청 시 즉시 파기합니다.</li>
+            <li>단, 관계 법령에 따라 보존이 필요한 경우 해당 법령에 따릅니다.</li>
+          </ul>
+
+          <h2>4. 개인정보 제3자 제공</h2>
+          <p>회사는 이용자의 개인정보를 <strong>원칙적으로 외부에 제공하지 않습니다.</strong></p>
+          <p>다만, 아래의 경우에는 예외로 합니다.</p>
+          <ul>
+            <li>이용자의 사전 동의를 받은 경우</li>
+            <li>법령에 따라 제출 의무가 있는 경우</li>
+          </ul>
+
+          <h2>5. 개인정보 처리의 위탁</h2>
+          <p>회사는 원활한 업무 수행을 위하여 다음과 같이 개인정보 처리 업무를 외부에 위탁할 수 있습니다.</p>
+
+          <h2>6. 개인정보의 안전성 확보 조치</h2>
+          <p>회사는 개인정보보호를 위하여 다음과 같은 조치를 취하고 있습니다.</p>
+          <ul>
+            <li>최소 권한 직원만 접근 가능</li>
+            <li>보안 서버(HTTPS) 운영</li>
+            <li>주기적인 백업 및 접근 기록 관리</li>
+          </ul>
+
+          <h2>7. 정보주체의 권리 및 행사 방법</h2>
+          <p>이용자는 언제든지 본인의 개인정보에 대해 열람, 정정, 삭제, 처리 정지 등을 요청할 수 있습니다.</p>
+          <p>요청은 이메일 또는 서면을 통해 가능합니다.</p>
+
+          <h2>8. 개인정보보호책임자 안내</h2>
+          <ul>
+            <li><strong>성명:</strong></li>
+            <li><strong>직책:</strong></li>
+            <li><strong>연락처:</strong></li>
+          </ul>
+
+          <h2>9. 개인정보처리방침 변경</h2>
+          <p>본 방침은 법령 변경, 내부 정책 등에 따라 사전 고지 없이 변경될 수 있습니다.</p>
+          <p>변경 시 웹사이트를 통해 공지합니다.</p>
+
+          <div class="policy__footer">
+            <p>공고일자 : 2025년 5월 2일</p>
+            <p>시행일자 : 2025년 5월 2일</p>
+            <p><strong>이 방침은 2025년 5월 2일부터 적용됩니다.</strong></p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .policy {
+    max-width: 720px;
+    margin: 0 auto;
+    font-size: 0.95rem;
+    line-height: 1.9;
+    color: var(--charcoal);
+  }
+
+  .policy__intro {
+    margin-bottom: 2rem;
+    color: var(--gray);
+    padding: 1.5rem;
+    background: var(--cream);
+    border-radius: 8px;
+    border-left: 3px solid var(--green-mid);
+  }
+
+  .policy h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--green-deep);
+    margin: 2.5rem 0 0.8rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--cream-dark);
+  }
+
+  .policy p {
+    margin-bottom: 1rem;
+    color: var(--gray);
+  }
+
+  .policy ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+    list-style: disc;
+  }
+
+  .policy li {
+    margin-bottom: 0.5rem;
+    color: var(--gray);
+  }
+
+  .policy strong {
+    color: var(--charcoal);
+  }
+
+  .policy__note {
+    font-size: 0.85rem;
+    color: var(--gray);
+    padding: 0.8rem 1rem;
+    background: var(--cream);
+    border-radius: 4px;
+  }
+
+  .policy__footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid var(--green-deep);
+  }
+
+  .policy__footer p {
+    margin-bottom: 0.3rem;
+  }
+</style>

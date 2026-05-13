@@ -1,17 +1,11 @@
 ---
-import { Client } from '@notionhq/client';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-
-const notion = new Client({ auth: import.meta.env.NOTION_API_KEY });
-const DATA_SOURCE_ID = '4f6d8d03-3a27-4cca-9007-06004a532702';
+import { queryDataSource, getPage, getPageBlocks } from '../../lib/notion';
 
 export async function getStaticPaths() {
-  const notion = new Client({ auth: import.meta.env.NOTION_API_KEY });
-  const response = await notion.dataSources.query({
-    data_source_id: '4f6d8d03-3a27-4cca-9007-06004a532702',
-  });
+  const response = await queryDataSource('4f6d8d03-3a27-4cca-9007-06004a532702');
   return response.results.map((page: any) => ({
     params: { id: page.id },
   }));
@@ -19,15 +13,12 @@ export async function getStaticPaths() {
 
 const { id } = Astro.params;
 
-// 페이지 메타 정보
-const page = await notion.pages.retrieve({ page_id: id! }) as any;
+const page = await getPage(id!) as any;
 const props = page.properties;
 const name = props['이름']?.title?.[0]?.plain_text ?? '';
 const tags = props['태그']?.multi_select?.map((t: any) => t.name) ?? [];
 
-// 블록 내용 가져오기
-const blocksRes = await notion.blocks.children.list({ block_id: id! });
-const blocks = blocksRes.results as any[];
+const blocks = await getPageBlocks(id!);
 
 // 블록 → HTML 변환
 function renderRichText(richTexts: any[]): string {
@@ -104,7 +95,7 @@ if (inNumberedList) html += '</ol>';
   <main>
     <section class="page-hero">
       <div class="container">
-        <a href="/hub" class="back-link">← 허브 백과사전</a>
+        <a href="/herb" class="back-link">← 허브 백과사전</a>
         <div class="hero-tags">
           {tags.map((tag: string) => <span class="tag">{tag}</span>)}
         </div>
@@ -197,7 +188,6 @@ if (inNumberedList) html += '</ol>';
     margin: 1.5rem 0;
     background-color: var(--cream);
     color: var(--gray);
-    font-style: italic;
   }
 
   .herb-content :global(hr) {

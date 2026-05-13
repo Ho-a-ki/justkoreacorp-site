@@ -8,6 +8,7 @@
     "preview": "astro preview"
   },
   "dependencies": {
+    "@astrojs/node": "^9.5.5",
     "@notionhq/client": "^5.13.0",
     "astro": "^5.0.0"
   }

@@ -1,0 +1,205 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { queryDataSource, getFirstImage } from '../../lib/notion';
+
+const response = await queryDataSource('4f6d8d03-3a27-4cca-9007-06004a532702', [{ property: '이름', direction: 'ascending' }]);
+
+const rawHerbs = response.results.map((page: any) => {
+  const props = page.properties;
+  const cover = page.cover?.type === 'external'
+    ? page.cover.external.url
+    : page.cover?.file?.url ?? '';
+  return {
+    id: page.id,
+    name: props['이름']?.title?.[0]?.plain_text ?? '',
+    tags: props['태그']?.multi_select?.map((t: any) => t.name) ?? [],
+    thumbnail: cover,
+  };
+});
+
+const herbs: typeof rawHerbs = [];
+for (let i = 0; i < rawHerbs.length; i += 3) {
+  const batch = rawHerbs.slice(i, i + 3);
+  const resolved = await Promise.all(
+    batch.map(async (h) => ({
+      ...h,
+      thumbnail: h.thumbnail || await getFirstImage(h.id),
+    }))
+  );
+  herbs.push(...resolved);
+}
+---
+
+<BaseLayout title="허브 백과사전" description="다양한 허브의 효능과 특성을 알아보세요.">
+  <Header />
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="page-hero__label">Herb Encyclopedia</p>
+        <h1 class="page-hero__title">허브 백과사전</h1>
+        <p class="page-hero__desc">자연이 품은 허브의 이야기, 효능, 그리고 활용법을 소개합니다.</p>
+      </div>
+    </section>
+
+    <section class="section section--cream">
+      <div class="container">
+        {herbs.length === 0 ? (
+          <p class="empty">등록된 허브가 없습니다.</p>
+        ) : (
+          <div class="herb-grid">
+            {herbs.map(herb => (
+              <a href={`/herb/${herb.id}`} class="herb-card" data-page-id={herb.id}>
+                <div class="herb-card__thumb">
+                  <span class="material-symbols-outlined herb-card__icon">spa</span>
+                  {herb.thumbnail && (
+                    <img data-src={herb.thumbnail} alt={herb.name} decoding="async" class="herb-card__img" />
+                  )}
+                </div>
+                <div class="herb-card__body">
+                  <div class="herb-card__tags">
+                    {herb.tags.map((tag: string) => (
+                      <span class="herb-card__tag">{tag}</span>
+                    ))}
+                  </div>
+                  <h3 class="herb-card__name">{herb.name}</h3>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .herb-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.2rem;
+  }
+
+  .herb-card {
+    background-color: var(--white);
+    border: 1px solid var(--cream-dark);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+  }
+
+  .herb-card:hover {
+    border-color: var(--green-light);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  .herb-card__thumb {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background-color: var(--cream);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .herb-card__icon {
+    font-size: 3rem;
+    color: var(--green-mid);
+    opacity: 0.3;
+    transition: opacity 0.3s;
+  }
+
+  .herb-card__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .herb-card__img.is-loaded {
+    opacity: 1;
+  }
+
+  .herb-card:hover .herb-card__img.is-loaded {
+    transform: scale(1.05);
+    transition: opacity 0.4s ease, transform 0.3s ease;
+  }
+
+  .herb-card__body {
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .herb-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .herb-card__tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green-mid);
+    background-color: var(--cream);
+    padding: 0.2em 0.6em;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+
+  .herb-card__name {
+    font-size: 1rem;
+    color: var(--green-deep);
+    line-height: 1.5;
+  }
+
+  .empty {
+    color: var(--gray);
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 1024px) {
+    .herb-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .herb-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 480px) {
+    .herb-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  const images = Array.from(document.querySelectorAll<HTMLImageElement>('.herb-card__img[data-src]'));
+  let i = 0;
+  function loadNext() {
+    if (i >= images.length) return;
+    const img = images[i++];
+    img.onload = () => {
+      img.classList.add('is-loaded');
+      loadNext();
+    };
+    img.onerror = () => loadNext();
+    img.src = img.dataset.src!;
+  }
+  loadNext();
+  loadNext();
+  loadNext();
+  loadNext();
+</script>

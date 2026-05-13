@@ -1,0 +1,248 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { queryDataSource, getFirstImage } from '../../lib/notion';
+
+const PRESS_DS_ID = 'b7e5d934-ade8-4c90-93ca-43e7e40ebefb';
+const CELEB_DS_ID = '0f8d5933-4073-4607-9f6d-87a0b2e7c4ce';
+
+const [pressRes, celebRes] = await Promise.all([
+  queryDataSource(PRESS_DS_ID, [{ property: '생성일', direction: 'descending' }]),
+  queryDataSource(CELEB_DS_ID, [{ property: '생성일', direction: 'descending' }]),
+]);
+
+async function resolveWithImages<T extends { id: string; thumbnail: string }>(items: T[]): Promise<T[]> {
+  const results: T[] = [];
+  for (let i = 0; i < items.length; i += 3) {
+    const batch = items.slice(i, i + 3);
+    const resolved = await Promise.all(
+      batch.map(async (item) => ({
+        ...item,
+        thumbnail: item.thumbnail || await getFirstImage(item.id),
+      }))
+    );
+    results.push(...resolved);
+  }
+  return results;
+}
+
+const rawPressItems = pressRes.results.map((page: any) => {
+  const props = page.properties;
+  const cover = page.cover?.type === 'external'
+    ? page.cover.external.url
+    : page.cover?.file?.url ?? '';
+  return {
+    id: page.id,
+    name: props['이름']?.title?.[0]?.plain_text ?? '',
+    tags: props['태그']?.multi_select?.map((t: any) => t.name) ?? [],
+    date: props['생성일']?.created_time?.slice(0, 10) ?? '',
+    thumbnail: cover,
+  };
+});
+
+const rawCelebItems = celebRes.results.map((page: any) => {
+  const props = page.properties;
+  const cover = page.cover?.type === 'external'
+    ? page.cover.external.url
+    : page.cover?.file?.url ?? '';
+  return {
+    id: page.id,
+    name: props['이름']?.title?.[0]?.plain_text ?? '',
+    tags: props['태그']?.multi_select?.map((t: any) => t.name) ?? [],
+    url: props['URL']?.url ?? '',
+    date: props['생성일']?.created_time?.slice(0, 10) ?? '',
+    thumbnail: cover,
+  };
+});
+
+const [pressItems, celebItems] = await Promise.all([
+  resolveWithImages(rawPressItems),
+  resolveWithImages(rawCelebItems),
+]);
+---
+
+<BaseLayout title="Press & Public" description="유스트코리아의 미디어 노출 및 셀럽 활동을 소개합니다.">
+  <Header />
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="page-hero__label">Press & Public</p>
+        <h1 class="page-hero__title">Press &<br />Public</h1>
+        <p class="page-hero__desc">미디어, 유튜브, 인플루언서와 함께하는 유스트코리아의 이야기</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="section-heading">Press</h2>
+        {pressItems.length === 0 ? (
+          <p class="empty">등록된 Press 항목이 없습니다.</p>
+        ) : (
+          <div class="press-grid">
+            {pressItems.map(item => (
+              <a href={`/press/${item.id}`} class="press-card" data-page-id={item.id}>
+                <div class="press-card__thumb">
+                  <span class="material-symbols-outlined press-card__icon">article</span>
+                  {item.thumbnail && (
+                    <img data-src={item.thumbnail} alt={item.name} decoding="async" class="press-card__img" />
+                  )}
+                </div>
+                <div class="press-card__body">
+                  <h3 class="press-card__title">{item.name}</h3>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+
+    <section class="section section--cream">
+      <div class="container">
+        <h2 class="section-heading">유스트를 사용하는 셀럽</h2>
+        {celebItems.length === 0 ? (
+          <p class="empty">등록된 셀럽 항목이 없습니다.</p>
+        ) : (
+          <div class="press-grid">
+            {celebItems.map(item => (
+              <a
+                href={item.url || `/press/${item.id}`}
+                class="press-card"
+                data-page-id={item.id}
+                target={item.url ? '_blank' : undefined}
+                rel={item.url ? 'noopener' : undefined}
+              >
+                <div class="press-card__thumb">
+                  <span class="material-symbols-outlined press-card__icon">article</span>
+                  {item.thumbnail && (
+                    <img data-src={item.thumbnail} alt={item.name} decoding="async" class="press-card__img" />
+                  )}
+                </div>
+                <div class="press-card__body">
+                  <h3 class="press-card__title">{item.name}</h3>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .section-heading {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    color: var(--green-deep);
+    margin-bottom: 2rem;
+  }
+
+  .press-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.2rem;
+  }
+
+  .press-card {
+    border: 1px solid var(--cream-dark);
+    background: var(--white);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+  }
+
+  .press-card:hover {
+    border-color: var(--green-mid);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  .press-card__thumb {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background-color: var(--cream);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .press-card__icon {
+    font-size: 3rem;
+    color: var(--green-mid);
+    opacity: 0.3;
+  }
+
+  .press-card__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .press-card__img.is-loaded {
+    opacity: 1;
+  }
+
+  .press-card:hover .press-card__img.is-loaded {
+    transform: scale(1.05);
+    transition: opacity 0.4s ease, transform 0.3s ease;
+  }
+
+  .press-card__body {
+    padding: 1rem 1.2rem;
+  }
+
+  .press-card__title {
+    font-size: 0.9rem;
+    color: var(--green-deep);
+    line-height: 1.5;
+  }
+
+  .empty {
+    color: var(--gray);
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 1024px) {
+    .press-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .press-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 480px) {
+    .press-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  const images = Array.from(document.querySelectorAll<HTMLImageElement>('.press-card__img[data-src]'));
+  let i = 0;
+  function loadNext() {
+    if (i >= images.length) return;
+    const img = images[i++];
+    img.onload = () => {
+      img.classList.add('is-loaded');
+      loadNext();
+    };
+    img.onerror = () => loadNext();
+    img.src = img.dataset.src!;
+  }
+  loadNext();
+  loadNext();
+  loadNext();
+  loadNext();
+</script>

@@ -1,0 +1,246 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { getPageBlocks } from '../lib/notion';
+
+const FAQ_PAGE_ID = '571a1a232160486d90d00fa603a7ef9d';
+
+const blocks = await getPageBlocks(FAQ_PAGE_ID);
+
+interface FaqItem {
+  question: string;
+  pageId: string;
+}
+
+interface FaqCategory {
+  title: string;
+  items: FaqItem[];
+}
+
+const categories: FaqCategory[] = [];
+
+async function parseColumnList(columnListBlock: any) {
+  const columnsRes = await getPageBlocks(columnListBlock.id);
+  for (const column of columnsRes) {
+    if (column.type === 'column') {
+      const colBlocks = await getPageBlocks(column.id);
+      let currentCategory: FaqCategory | null = null;
+      for (const b of colBlocks) {
+        if (b.type === 'heading_3') {
+          const title = b.heading_3.rich_text.map((r: any) => r.plain_text).join('');
+          currentCategory = { title, items: [] };
+          categories.push(currentCategory);
+        } else if (b.type === 'child_page' && currentCategory) {
+          currentCategory.items.push({
+            question: b.child_page.title,
+            pageId: b.id,
+          });
+        }
+      }
+    }
+  }
+}
+
+for (const block of blocks) {
+  if (block.type === 'column_list') {
+    await parseColumnList(block);
+  }
+}
+---
+
+<BaseLayout title="FAQ" description="유스트코리아에 대해 자주 묻는 질문과 답변입니다.">
+  <Header />
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="page-hero__label">FAQ</p>
+        <h1 class="page-hero__title">자주 묻는 질문</h1>
+        <p class="page-hero__desc">유스트코리아 제품과 서비스에 대한 궁금증을 해결해보세요.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="faq-wrap">
+          {categories.map(cat => (
+            <div class="faq-category">
+              <h2 class="faq-category__title">{cat.title}</h2>
+              <div class="faq-list">
+                {cat.items.map(item => (
+                  <details class="faq-item" data-page-id={item.pageId}>
+                    <summary class="faq-item__question">{item.question}</summary>
+                    <div class="faq-item__answer">
+                      <p class="faq-item__loading">불러오는 중...</p>
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .faq-wrap {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .faq-category__title {
+    font-size: 1.3rem;
+    color: var(--green-deep);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--green-deep);
+  }
+
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--cream-dark);
+  }
+
+  .faq-item__question {
+    padding: 1.2rem 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--charcoal);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .faq-item__question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-item__question::after {
+    content: '+';
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: var(--gray);
+    flex-shrink: 0;
+  }
+
+  .faq-item[open] .faq-item__question::after {
+    content: '−';
+  }
+
+  .faq-item__question:hover {
+    color: var(--green-mid);
+  }
+
+  .faq-item__loading {
+    color: var(--gray);
+    font-size: 0.85rem;
+  }
+
+  .faq-item__answer {
+    padding: 0 0 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--gray);
+  }
+
+  .faq-item__answer :global(p) {
+    margin-bottom: 0.8rem;
+  }
+
+  .faq-item__answer :global(ul),
+  .faq-item__answer :global(ol) {
+    padding-left: 1.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .faq-item__answer :global(strong) {
+    color: var(--charcoal);
+  }
+
+  .faq-item__answer :global(a) {
+    color: var(--green-mid);
+    text-decoration: underline;
+  }
+
+  .faq-item__answer :global(figure) {
+    margin: 1rem 0;
+  }
+
+  .faq-item__answer :global(img) {
+    max-width: 100%;
+    border-radius: 4px;
+  }
+
+  .faq-item__answer :global(blockquote) {
+    border-left: 3px solid var(--gold);
+    padding: 0.5rem 1rem;
+    margin: 0.8rem 0;
+    background-color: var(--cream);
+    color: var(--gray);
+  }
+
+  .faq-item__answer :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8rem 0;
+    font-size: 0.85rem;
+  }
+
+  .faq-item__answer :global(th),
+  .faq-item__answer :global(td) {
+    border: 1px solid var(--cream-dark);
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+  }
+
+  .faq-item__answer :global(th) {
+    background-color: var(--cream);
+    font-weight: 600;
+    color: var(--charcoal);
+  }
+
+  .faq-item__answer :global(.callout) {
+    background-color: var(--cream);
+    border-left: 3px solid var(--green-mid);
+    padding: 0.8rem 1rem;
+    margin: 0.6rem 0;
+    border-radius: 0 4px 4px 0;
+  }
+</style>
+
+<script>
+  const loaded = new Set<string>();
+
+  document.querySelectorAll<HTMLDetailsElement>('.faq-item[data-page-id]').forEach(details => {
+    details.addEventListener('toggle', async () => {
+      if (!details.open) return;
+      const pageId = details.dataset.pageId!;
+      if (loaded.has(pageId)) return;
+      loaded.add(pageId);
+
+      const answerDiv = details.querySelector('.faq-item__answer')!;
+      try {
+        const res = await fetch(`/api/faq-answer/${pageId}`);
+        const data = await res.json();
+        answerDiv.innerHTML = data.html;
+      } catch {
+        answerDiv.innerHTML = '<p>답변을 불러오지 못했습니다.</p>';
+      }
+    });
+  });
+</script>

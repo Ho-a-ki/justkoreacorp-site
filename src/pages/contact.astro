@@ -4,14 +4,14 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 ---
 
-<BaseLayout title="연락처" description="저스트코리아와 협업 및 문의를 위한 연락처입니다.">
+<BaseLayout title="연락처" description="유스트코리아와 협업 및 문의를 위한 연락처입니다.">
   <Header />
 
   <main>
     <section class="page-hero">
       <div class="container">
         <p class="page-hero__label">Contact</p>
-        <h1 class="page-hero__title">함께<br /><em>만들어가요</em></h1>
+        <h1 class="page-hero__title">함께<br />만들어가요</h1>
         <p class="page-hero__desc">협업 제안, 미디어 문의, 비즈니스 파트너십 등 다양한 문의를 환영합니다.</p>
       </div>
     </section>
@@ -20,35 +20,31 @@ import Footer from '../components/Footer.astro';
       <div class="container contact-grid">
         <div class="contact-info">
           <div class="contact-item">
-            <span class="contact-item__label">이메일</span>
-            <a href="mailto:hello@justkoreacorp.com" class="contact-item__value">hello@justkoreacorp.com</a>
+            <span class="contact-item__label">공통 이메일</span>
+            <a href="mailto:hq@justkorea.co.kr" class="contact-item__value">hq@justkorea.co.kr</a>
           </div>
           <div class="contact-item">
-            <span class="contact-item__label">협업 문의</span>
-            <a href="mailto:partner@justkoreacorp.com" class="contact-item__value">partner@justkoreacorp.com</a>
+            <span class="contact-item__label">판매 관련 문의</span>
+            <a href="mailto:sales@justkorea.co.kr" class="contact-item__value">sales@justkorea.co.kr</a>
           </div>
           <div class="contact-item">
-            <span class="contact-item__label">미디어 / PR</span>
-            <a href="mailto:pr@justkoreacorp.com" class="contact-item__value">pr@justkoreacorp.com</a>
-          </div>
-          <div class="contact-item">
-            <span class="contact-item__label">주소</span>
-            <p class="contact-item__value">서울특별시 —</p>
+            <span class="contact-item__label">CS 관련 문의</span>
+            <a href="mailto:cs@justkorea.co.kr" class="contact-item__value">cs@justkorea.co.kr</a>
           </div>
         </div>
 
-        <form class="contact-form">
+        <form class="contact-form" id="contactForm">
           <div class="form-group">
             <label class="form-label">이름</label>
-            <input type="text" class="form-input" placeholder="홍길동" />
+            <input type="text" name="name" class="form-input" placeholder="홍길동" required />
           </div>
           <div class="form-group">
             <label class="form-label">이메일</label>
-            <input type="email" class="form-input" placeholder="example@email.com" />
+            <input type="email" name="email" class="form-input" placeholder="example@email.com" required />
           </div>
           <div class="form-group">
             <label class="form-label">문의 유형</label>
-            <select class="form-input">
+            <select name="type" class="form-input">
               <option value="">선택해주세요</option>
               <option>협업 제안</option>
               <option>미디어 / PR</option>
@@ -58,9 +54,10 @@ import Footer from '../components/Footer.astro';
           </div>
           <div class="form-group">
             <label class="form-label">메시지</label>
-            <textarea class="form-input form-textarea" placeholder="문의 내용을 입력해주세요."></textarea>
+            <textarea name="message" class="form-input form-textarea" placeholder="문의 내용을 입력해주세요." required></textarea>
           </div>
           <button type="submit" class="form-submit">보내기</button>
+          <p class="form-status" id="formStatus"></p>
         </form>
       </div>
     </section>
@@ -161,9 +158,66 @@ import Footer from '../components/Footer.astro';
     background-color: var(--green-mid);
   }
 
+  .form-status {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+  }
+
+  .form-status.success { color: var(--green-mid); }
+  .form-status.error { color: #c0392b; }
+
+  .form-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   @media (max-width: 768px) {
     .contact-grid {
       grid-template-columns: 1fr;
     }
   }
 </style>
+
+<script>
+  const form = document.getElementById('contactForm') as HTMLFormElement;
+  const status = document.getElementById('formStatus')!;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = '전송 중...';
+    status.textContent = '';
+    status.className = 'form-status';
+
+    const data = {
+      name: (form.elements.namedItem('name') as HTMLInputElement).value,
+      email: (form.elements.namedItem('email') as HTMLInputElement).value,
+      type: (form.elements.namedItem('type') as HTMLSelectElement).value,
+      message: (form.elements.namedItem('message') as HTMLTextAreaElement).value,
+    };
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        status.textContent = '문의가 전송되었습니다. 감사합니다!';
+        status.classList.add('success');
+        form.reset();
+      } else {
+        const err = await res.json();
+        status.textContent = err.error || '전송에 실패했습니다.';
+        status.classList.add('error');
+      }
+    } catch {
+      status.textContent = '네트워크 오류가 발생했습니다.';
+      status.classList.add('error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '보내기';
+  });
+</script>
