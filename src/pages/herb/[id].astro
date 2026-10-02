@@ -1,157 +1,211 @@
 ---
+import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import herbs from '../../data/herbs.json';
+import Icon from '../../components/Icon.astro';
+import { getHerbs, coverOf, neighbors, startsWithCover, vt } from '../../lib/content';
 
-export function getStaticPaths() {
-  return herbs.map(herb => ({ params: { id: herb.id } }));
+export async function getStaticPaths() {
+  const herbs = await getHerbs();
+  return herbs.map((herb) => ({ params: { id: herb.id }, props: { herb, herbs } }));
 }
 
-const { id } = Astro.params;
-const herb = herbs.find(h => h.id === id)!;
+const { herb, herbs } = Astro.props;
+const { Content } = await render(herb);
+const cover = coverOf(herb);
+const { prev, next } = neighbors(herbs, herb.id);
+const hideFirstImage = startsWithCover(herb);
 ---
 
-<BaseLayout title={herb.name} description={`${herb.name} — 허브 백과사전`}>
-  <Header />
-
-  <main>
-    <section class="page-hero">
-      <div class="container">
-        <a href="/herb" class="back-link">← 허브 백과사전</a>
-        <div class="hero-tags">
-          {herb.tags.map((tag: string) => <span class="tag">{tag}</span>)}
+<BaseLayout title={herb.data.name} description={`${herb.data.name} — JUST 허브 백과사전`} image={cover || undefined}>
+  <article class="herb">
+    <div class="container herb__grid">
+      <aside class="herb__aside">
+        <a href="/herb" class="herb__back"><Icon name="arrow-left" size={16} /> 허브 백과사전</a>
+        <div class="herb__img" style={`view-transition-name:${vt('herb', herb.id)}`}>
+          {cover ? <img src={cover} alt={herb.data.name} decoding="async" /> : <Icon name="leaf" size={48} />}
         </div>
-        <h1 class="page-hero__title">{herb.name}</h1>
-      </div>
-    </section>
+      </aside>
 
-    <section class="section">
-      <div class="container">
-        <div class="herb-content" set:html={herb.content} />
+      <div class="herb__main">
+        <p class="mark">허브 백과사전</p>
+        <h1 class="herb__title">{herb.data.name}</h1>
+        {
+          herb.data.tags.length > 0 && (
+            <ul class="herb__tags">
+              {herb.data.tags.map((t) => (
+                <li>{t}</li>
+              ))}
+            </ul>
+          )
+        }
+        <div class:list={['prose herb__prose', { 'hide-first-image': hideFirstImage }]}>
+          <Content />
+        </div>
       </div>
-    </section>
-  </main>
+    </div>
 
-  <Footer />
+    <nav class="container pager" aria-label="다른 허브">
+      {
+        prev ? (
+          <a href={`/herb/${prev.id}`} class="pager__link">
+            <span>이전 허브</span>
+            <strong>{prev.data.name}</strong>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next && (
+          <a href={`/herb/${next.id}`} class="pager__link pager__link--next">
+            <span>다음 허브</span>
+            <strong>{next.data.name}</strong>
+          </a>
+        )
+      }
+    </nav>
+  </article>
 </BaseLayout>
 
 <style>
-  .back-link {
-    display: inline-block;
-    font-size: 0.82rem;
-    color: rgba(244, 239, 230, 0.6);
-    margin-bottom: 1.5rem;
+  .herb {
+    padding-block: clamp(2rem, 1rem + 3vw, 4rem) var(--section);
+  }
+
+  .herb__grid {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    gap: 2.5rem clamp(2rem, 6vw, 6rem);
+    align-items: start;
+  }
+
+  .herb__aside {
+    position: sticky;
+    top: calc(var(--nav-h) + 1.5rem);
+  }
+
+  .herb__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--t-sm);
+    font-weight: 600;
+    color: var(--ink-2);
+    margin-bottom: 1.25rem;
+  }
+
+  .herb__back:hover {
+    color: var(--blue);
+  }
+
+  .herb__img {
+    aspect-ratio: 4 / 5;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--snow);
+    display: grid;
+    place-items: center;
+    color: var(--herb);
+  }
+
+  .herb__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .herb__main {
+    padding-top: 2.75rem;
+  }
+
+  .herb__title {
+    margin-top: 0.9rem;
+    font-size: var(--t-3xl);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1.08;
+  }
+
+  .herb__tags {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1rem;
+  }
+
+  .herb__tags li {
+    font-size: var(--t-xs);
+    color: var(--herb);
+    background: var(--herb-wash);
+    padding: 0.15rem 0.65rem;
+    border-radius: 999px;
+  }
+
+  .herb__prose {
+    margin-top: 2rem;
+  }
+
+  .hide-first-image > :global(p:first-child:has(> img:only-child)) {
+    display: none;
+  }
+
+  .hide-first-image > :global(p:first-child:has(> img:only-child) + *) {
+    margin-top: 0;
+  }
+
+  /* 앞뒤 글 */
+  .pager {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: var(--section);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .pager__link {
+    display: grid;
+    gap: 0.15rem;
+    max-width: 48%;
+  }
+
+  .pager__link span {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+  }
+
+  .pager__link strong {
+    font-size: var(--t-lg);
+    font-weight: 700;
+    letter-spacing: -0.03em;
     transition: color 0.2s;
   }
-  .back-link:hover { color: var(--cream); }
 
-  .hero-tags {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
+  .pager__link:hover strong {
+    color: var(--blue);
   }
 
-  .tag {
-    font-size: 0.7rem;
-    padding: 0.2em 0.8em;
-    border: 1px solid rgba(184, 146, 74, 0.4);
-    color: var(--gold);
-    border-radius: 2px;
-    letter-spacing: 0.08em;
+  .pager__link--next {
+    text-align: right;
+    margin-left: auto;
   }
 
-  .herb-content {
-    max-width: 720px;
-    margin: 0 auto;
-    font-size: 1rem;
-    line-height: 1.9;
-    color: var(--charcoal);
-  }
+  @media (width <= 860px) {
+    .herb__grid {
+      grid-template-columns: 1fr;
+    }
 
-  .herb-content :global(h2) {
-    font-size: 1.8rem;
-    color: var(--green-deep);
-    margin: 2.5rem 0 1rem;
-    font-family: var(--font-display);
-  }
+    .herb__aside {
+      position: static;
+    }
 
-  .herb-content :global(h3) {
-    font-size: 1.4rem;
-    color: var(--green-deep);
-    margin: 2rem 0 0.75rem;
-    font-family: var(--font-display);
-  }
+    .herb__img {
+      aspect-ratio: 16 / 11;
+    }
 
-  .herb-content :global(h4) {
-    font-size: 1.1rem;
-    color: var(--green-deep);
-    margin: 1.5rem 0 0.5rem;
-  }
-
-  .herb-content :global(p) {
-    margin-bottom: 1.2rem;
-    color: var(--charcoal);
-  }
-
-  .herb-content :global(ul),
-  .herb-content :global(ol) {
-    padding-left: 1.5rem;
-    margin-bottom: 1.2rem;
-  }
-
-  .herb-content :global(li) {
-    margin-bottom: 0.4rem;
-  }
-
-  .herb-content :global(blockquote) {
-    border-left: 3px solid var(--gold);
-    padding: 0.75rem 1.5rem;
-    margin: 1.5rem 0;
-    background-color: var(--cream);
-    color: var(--gray);
-  }
-
-  .herb-content :global(hr) {
-    border: none;
-    border-top: 1px solid var(--cream-dark);
-    margin: 2rem 0;
-  }
-
-  .herb-content :global(figure) {
-    margin: 2rem 0;
-  }
-
-  .herb-content :global(img) {
-    width: 100%;
-    border-radius: 4px;
-  }
-
-  .herb-content :global(figcaption) {
-    font-size: 0.82rem;
-    color: var(--gray);
-    text-align: center;
-    margin-top: 0.5rem;
-  }
-
-  .herb-content :global(code) {
-    background-color: var(--cream);
-    padding: 0.1em 0.4em;
-    border-radius: 2px;
-    font-size: 0.9em;
-  }
-
-  .herb-content :global(.callout) {
-    background-color: var(--cream);
-    border-left: 3px solid var(--green-mid);
-    padding: 1rem 1.5rem;
-    margin: 1.5rem 0;
-    border-radius: 0 4px 4px 0;
-  }
-
-  .herb-content :global(a) {
-    color: var(--green-mid);
-    text-decoration: underline;
+    .herb__main {
+      padding-top: 0;
+    }
   }
 </style>

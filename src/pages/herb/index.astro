@@ -1,143 +1,171 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import herbs from '../../data/herbs.json';
+import PageHeader from '../../components/PageHeader.astro';
+import Icon from '../../components/Icon.astro';
+import { getHerbs, coverOf, vt } from '../../lib/content';
+
+const herbs = await getHerbs();
 ---
 
-<BaseLayout title="허브 백과사전" description="다양한 허브의 효능과 특성을 알아보세요.">
-  <Header />
+<BaseLayout title="허브 백과사전" description={`JUST 제품에 담긴 허브와 원료 ${herbs.length}가지를 소개합니다.`}>
+  <PageHeader
+    section="허브 백과사전"
+    title="병 속에 담긴 원료들"
+    description={`JUST 제품에 들어가는 허브와 원료 ${herbs.length}가지의 이야기입니다. 이름으로 찾아보세요.`}
+  >
+    <label class="search" data-herb-search>
+      <Icon name="search" />
+      <span class="sr-only">허브 이름으로 찾기</span>
+      <input type="search" placeholder="예: 에델바이스, 라벤더" autocomplete="off" />
+    </label>
+  </PageHeader>
 
-  <main>
-    <section class="page-hero">
-      <div class="container">
-        <p class="page-hero__label">Herb Encyclopedia</p>
-        <h1 class="page-hero__title">허브 백과사전</h1>
-        <p class="page-hero__desc">자연이 품은 허브의 이야기, 효능, 그리고 활용법을 소개합니다.</p>
+  <section class="section herbs">
+    <div class="container">
+      <p class="herbs__count" aria-live="polite" data-herb-count>{herbs.length}가지</p>
+      <ul class="herbs__grid" data-herb-list>
+        {
+          herbs.map((herb) => {
+            const cover = coverOf(herb);
+            return (
+              <li data-name={herb.data.name}>
+                <a href={`/herb/${herb.id}`} class="herb-card">
+                  <div class="herb-card__img" style={`view-transition-name:${vt('herb', herb.id)}`}>
+                    {cover ? <img src={cover} alt="" loading="lazy" decoding="async" /> : <Icon name="leaf" size={32} />}
+                  </div>
+                  <div class="herb-card__body">
+                    <h2>{herb.data.name}</h2>
+                    {herb.data.tags.length > 0 && (
+                      <ul class="herb-card__tags">
+                        {herb.data.tags.map((t) => (
+                          <li>{t}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+      <div class="empty-state" data-herb-empty hidden>
+        <strong>찾는 허브가 없습니다</strong>
+        다른 이름으로 찾아보거나, 괄호 속 이름(예: 타임, 레몬밤)으로도 찾아보세요.
       </div>
-    </section>
-
-    <section class="section section--cream">
-      <div class="container">
-        <div class="herb-grid">
-          {herbs.map(herb => (
-            <a href={`/herb/${herb.id}`} class="herb-card">
-              <div class="herb-card__thumb">
-                <span class="material-symbols-outlined herb-card__icon">spa</span>
-                {herb.thumbnail && (
-                  <img src={herb.thumbnail} alt={herb.name} loading="lazy" decoding="async" class="herb-card__img" />
-                )}
-              </div>
-              <div class="herb-card__body">
-                <div class="herb-card__tags">
-                  {herb.tags.map((tag: string) => (
-                    <span class="herb-card__tag">{tag}</span>
-                  ))}
-                </div>
-                <h3 class="herb-card__name">{herb.name}</h3>
-              </div>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <Footer />
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .herb-grid {
+  .herbs {
+    padding-top: 2rem;
+  }
+
+  .herbs__count {
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    margin-bottom: 1.25rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .herbs__grid {
+    list-style: none;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.2rem;
+    grid-template-columns: repeat(auto-fill, minmax(14.5rem, 1fr));
+    gap: 2.5rem 1.5rem;
   }
 
   .herb-card {
-    background-color: var(--white);
-    border: 1px solid var(--cream-dark);
-    border-radius: 4px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    text-decoration: none;
-  }
-
-  .herb-card:hover {
-    border-color: var(--green-light);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  }
-
-  .herb-card__thumb {
-    aspect-ratio: 4 / 3;
-    overflow: hidden;
-    background-color: var(--cream);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .herb-card__icon {
-    font-size: 3rem;
-    color: var(--green-mid);
-    opacity: 0.3;
+    display: block;
   }
 
   .herb-card__img {
-    position: absolute;
-    inset: 0;
+    aspect-ratio: 4 / 5;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--snow);
+    display: grid;
+    place-items: center;
+    color: var(--herb);
+  }
+
+  .herb-card__img img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.8s var(--ease-out);
   }
 
-  .herb-card:hover .herb-card__img {
+  .herb-card:hover .herb-card__img img {
     transform: scale(1.05);
-    transition: transform 0.3s ease;
   }
 
   .herb-card__body {
-    padding: 1rem 1.2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    padding-top: 0.9rem;
+  }
+
+  .herb-card__body h2 {
+    font-size: var(--t-lg);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    transition: color 0.2s;
+  }
+
+  .herb-card:hover h2 {
+    color: var(--blue);
   }
 
   .herb-card__tags {
+    list-style: none;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
   }
 
-  .herb-card__tag {
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--green-mid);
-    background-color: var(--cream);
-    padding: 0.2em 0.6em;
-    border-radius: 2px;
-    font-weight: 500;
+  .herb-card__tags li {
+    font-size: var(--t-xs);
+    color: var(--herb);
+    background: var(--herb-wash);
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
   }
 
-  .herb-card__name {
-    font-size: 1rem;
-    color: var(--green-deep);
-    line-height: 1.5;
-  }
+  @media (width <= 560px) {
+    .herbs__grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.75rem 0.9rem;
+    }
 
-  @media (width <= 1024px) {
-    .herb-grid { grid-template-columns: repeat(3, 1fr); }
-  }
-
-  @media (width <= 768px) {
-    .herb-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  @media (width <= 480px) {
-    .herb-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+    .herb-card__body h2 {
+      font-size: var(--t-md);
+    }
   }
 </style>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>('[data-herb-search] input');
+  const items = [...document.querySelectorAll<HTMLElement>('[data-herb-list] > li')];
+  const count = document.querySelector('[data-herb-count]');
+  const empty = document.querySelector<HTMLElement>('[data-herb-empty]');
+  const total = items.length;
+
+  const normalize = (s: string) => s.replace(/\s+/g, '').toLowerCase();
+
+  const apply = () => {
+    const q = normalize(input?.value ?? '');
+    let shown = 0;
+    for (const li of items) {
+      const hit = !q || normalize(li.dataset.name ?? '').includes(q);
+      li.hidden = !hit;
+      if (hit) shown++;
+    }
+    if (count) count.textContent = q ? `${total}가지 중 ${shown}가지` : `${total}가지`;
+    if (empty) empty.hidden = shown > 0;
+  };
+
+  input?.addEventListener('input', apply);
+  // 뒤로 가기로 돌아왔을 때 남아 있는 검색어 반영
+  apply();
+</script>

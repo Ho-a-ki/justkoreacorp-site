@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>유스트코리아 관리자</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <!-- Sveltia CMS. 설정은 config.js — 로그인은 /api/cms-auth, GitHub 요청은 /api/gh 를 거친다 -->
+    <script>
+      window.CMS_MANUAL_INIT = true;
+    </script>
+    <script src="https://unpkg.com/@sveltia/cms@0.227.2/dist/sveltia-cms.js"></script>
+    <script src="/admin/config.js"></script>
+    <script>
+      // 로그인 화면 정리: 'GitHub(으)로 로그인' 하나만 [로그인] 으로 남긴다.
+      // 토큰 로그인·로컬 저장소 작업은 운영자가 쓸 일이 없다 (우리 로그인 창이 GitHub 없이 처리).
+      const HIDE = ['액세스 토큰', '로컬 저장소', 'Access Token', 'Local Repository', '루트 디렉터리', 'root directory'];
+      const tidy = () => {
+        // 로그인 화면의 버튼 묶음(.buttons) 안에서만 손댄다
+        document.querySelectorAll('.buttons').forEach((group) => {
+          group.querySelectorAll('button').forEach((button) => {
+            const text = button.textContent;
+            if (HIDE.some((word) => text.includes(word))) button.style.display = 'none';
+            else if (/GitHub/.test(text)) {
+              if (text !== '로그인') button.textContent = '로그인';
+              button.classList.replace('secondary', 'primary');
+            }
+          });
+          // 제목
+          group.parentElement?.querySelectorAll('h1, h2').forEach((h) => {
+            if (h.textContent.trim() === 'Sveltia CMS') h.textContent = '유스트코리아 관리자';
+          });
+          // 로컬 저장소 안내 문구 (버튼 묶음 안이나 바로 옆)
+          [...group.children, ...(group.parentElement?.children ?? [])].forEach((el) => {
+            if (el.tagName !== 'BUTTON' && !el.querySelector('button') && HIDE.some((word) => el.textContent.includes(word))) el.style.display = 'none';
+          });
+        });
+      };
+      new MutationObserver(tidy).observe(document.documentElement, { childList: true, subtree: true });
+    </script>
+  </body>
+</html>

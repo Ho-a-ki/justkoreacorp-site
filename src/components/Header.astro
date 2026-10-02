@@ -1,401 +1,386 @@
 ---
-const leftLinks = [
-  { label: '주요 활동', href: '/activities' },
-  { label: '스토어', href: '/stores' },
-  { label: '허브 백과사전', href: '/herb' },
-];
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
 
-const rightLinks = [
-  { label: '자주 묻는 질문', href: '/faq' },
+interface Props {
+  /** 홈처럼 사진 위에서 시작하면 투명하게 시작해(흰 로고) 스크롤하면 흰 바탕(네이비 로고)이 된다 */
+  overlay?: boolean;
+}
+const { overlay = false } = Astro.props;
+
+const links = [
+  { label: '주요 활동', href: '/activities' },
+  { label: '허브 백과사전', href: '/herb' },
+  { label: '스토어', href: '/stores' },
   { label: '미디어', href: '/press' },
-  { label: '연락처', href: '/contact' },
+  { label: '자주 묻는 질문', href: '/faq' },
+  { label: '문의', href: '/contact' },
 ];
 
 const externalLinks = [
-  { label: '스파', href: 'https://spa.justkoreacorp.com/' },
-  { label: '제품 찾기', href: 'https://justkorea.co.kr/' },
+  { label: '스파 예약', href: 'https://spa.justkoreacorp.com/' },
+  { label: '온라인 스토어', href: 'https://justkorea.co.kr/' },
 ];
 
-const currentPath = Astro.url.pathname;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) => path === href || path.startsWith(href + '/');
 ---
 
-<header class="header">
+<header class:list={['header', { 'header--overlay': overlay }]} id="siteHeader">
   <div class="header__inner container">
-    <nav class="header__nav header__nav--left" id="navLeft">
-      <ul class="header__nav-list">
-        {leftLinks.map(link => (
-          <li>
-            <a
-              href={link.href}
-              class={`header__nav-link ${currentPath === link.href || currentPath.startsWith(link.href + '/') ? 'is-active' : ''}`}
-            >
-              {link.label}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
-
-    <a href="/" class="header__logo">
-      <svg class="header__logo-svg" viewBox="0 0 1587.52 1122.56" xmlns="http://www.w3.org/2000/svg">
-        <g transform="matrix(1.3333333,0,0,-1.3333333,0,1122.56)">
-          <g transform="scale(0.1)">
-            <path d="M 10176.4,5825.54 H 9138.12 L 9340,6863.77 h 1038.3 l -201.9,-1038.23" style="fill:#ee2722"/>
-            <path d="m 10144.2,6461.23 h -225.9 l 49.46,254.53 h -239.75 l -49.47,-254.53 h -240.72 l -46.79,-240.53 h 240.73 l -52.19,-268.36 h 239.85 l 52.14,268.36 h 225.94 l 46.7,240.53" style="fill:#ffffff"/>
-            <path d="m 3191.55,3200.86 c -11.78,-42.43 -24.23,-83.85 -37.53,-124.22 729.39,-317.15 1644.1,-505.97 2637.31,-505.97 832.91,0 1610.68,132.82 2270.25,362.68 C 7484.99,2798.93 6842.46,2719.81 6164.23,2711.38 5030.9,2697.3 3991.98,2882.85 3191.55,3200.86 m -1601.93,1628.9 c -14.94,1201.1 2009.03,2200.16 4520.58,2231.34 1126.54,13.99 2159.78,-169.23 2958.25,-483.81 -791.59,519.11 -1966.07,848.03 -3277.12,848.03 -2383.57,0 -4315.78,-1086.67 -4315.78,-2427.35 0,-583.03 365.6,-1117.95 974.83,-1536.66 l 21.47,102.23 c -549.26,351.95 -876.31,789.12 -882.23,1266.22" style="fill:var(--cream, #f4efe6)"/>
-            <path d="M 3768.31,6276.19 H 3141.75 L 2526.33,3216.33 c -65.64,-315.45 -290.8,-745.48 -655.36,-765.92 l 65.54,-180.23 c 421.23,2.46 697.73,146.79 881.1,400.25 131.81,178.83 221.53,413.39 287.87,695.53 l 662.83,2910.23" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 5378.9,3605.62 h -536.54 l 49.12,213.13 c -208.82,-139.24 -454.58,-254.01 -708.53,-254.01 -442.3,0 -438.25,454.77 -372.73,770.04 l 241.74,1163.13 557.01,90.2 -249.9,-1191.82 c -36.86,-171.99 -77.84,-503.83 184.26,-503.83 139.33,0 282.63,69.66 389.15,155.57 l 303.05,1449.88 557,90.2 -413.63,-1982.49" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 6975.94,5366.91 c -167.86,4.13 -380.91,-102.31 -380.91,-294.91 0,-245.68 757.69,-298.94 757.69,-773.98 -4.05,-503.82 -528.23,-737.4 -962.48,-737.4 -188.27,0 -356.16,45.01 -532.33,106.53 l -16.33,225.31 c 159.69,-81.85 343.96,-122.83 520.06,-122.83 196.63,0 462.85,110.56 462.85,339.9 4.03,331.76 -757.75,344.06 -757.75,786.36 0,450.49 503.73,675.81 896.9,675.81 131.09,0 315.37,-40.89 430.04,-106.51 l 12.28,-225.24 c -131.08,69.66 -278.48,126.96 -430.02,126.96" style="fill:var(--cream, #f4efe6)"/>
-            <path d="M 9023.71,5358.66 H 8552.6 L 8315.17,4232.38 c -49.16,-225.16 -69.76,-380.9 233.4,-380.9 77.82,0 155.65,8.17 233.4,20.63 l -102.3,-225.43 c -196.57,-41.06 -393.19,-81.94 -597.98,-81.94 -356.34,0 -397.33,213.05 -335.9,499.79 l 270.33,1294.13 h -245.67 l 36.79,176.19 h 241.71 l 98.27,454.6 552.95,90.2 -110.64,-544.8 h 466.89 l -32.71,-176.19" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 2129.88,1388.39 c -99.79,0 -178.14,-57.55 -178.14,-173.25 0,-115.71 78.35,-173.24 178.14,-173.24 99.79,0 178.14,57.53 178.14,173.24 0,115.7 -78.35,173.25 -178.14,173.25 m 0,56.32 c 175.7,0 243.04,-117.54 243.04,-229.57 0,-112.02 -67.34,-229.562 -243.04,-229.562 -175.69,0 -243.04,117.542 -243.04,229.562 0,112.03 67.35,229.57 243.04,229.57" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 2722.52,1238.4 c 63.67,0 78.97,38.56 78.97,69.17 0,41.63 -25.1,69.79 -77.13,69.79 H 2541.31 V 1238.4 Z m -246.1,195.28 h 270.59 c 87.54,0 119.37,-60.6 119.37,-116.32 0,-53.26 -25.71,-92.44 -73.46,-107.74 v -1.22 c 38.57,-5.51 61.22,-41.63 63.67,-93.06 3.67,-81.41 6.12,-101.62 20.81,-118.762 h -68.56 c -10.41,12.252 -10.41,30.612 -13.47,83.262 -4.29,78.35 -30.61,102.23 -84.48,102.23 H 2541.31 V 996.578 h -64.89 v 437.102" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 3039.67,1433.69 h -64.89 v -437.1 h 64.89 v 437.1" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 3409.44,1232.28 h 200.8 V 996.59 h -46.53 l -11.02,62.44 c -28.77,-33.67 -75.3,-73.46 -167.73,-73.46 -175.09,0 -230.8,126.1 -230.8,222.22 0,168.96 115.7,236.91 228.96,236.91 89.99,0 192.22,-28.15 219.77,-148.76 h -68.56 c -20.2,60.61 -65.51,92.44 -148.15,92.44 -115.7,0 -167.13,-82.03 -167.13,-175.08 0,-123.66 78.97,-171.41 170.19,-171.41 94.89,0 156.72,56.32 163.45,134.06 h -143.25 v 56.33" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 3803.74,1433.69 h -64.89 v -437.1 h 64.89 v 437.1" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 4002.72,1344.31 h -1.23 V 996.59 h -64.89 v 437.1 h 75.3 l 281,-347.73 h 1.22 v 347.73 h 64.89 v -437.1 h -75.3 l -280.99,347.72" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 4668.82,1373.69 -82.04,-193.45 h 165.91 z m 107.74,-249.77 H 4562.3 l -55.71,-127.33 h -69.79 l 197.74,437.1 h 74.07 l 197.73,-437.1 h -74.07 l -55.71,127.33" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 4984.13,1433.69 h 64.89 v -380.78 h 265.69 v -56.32 h -330.58 v 437.1" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 5840.63,1198.61 h -214.88 v -63.67 h 214.88 v 63.67" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 6220.83,1140.46 c 1.22,-78.36 74.69,-98.56 140.8,-98.56 69.18,0 118.16,26.31 118.16,74.07 0,39.79 -31.23,56.32 -81.43,64.89 l -99.17,16.52 c -52.04,8.58 -129.79,29.4 -129.79,114.49 0,79.58 63.06,132.84 175.09,132.84 87.54,0 179.98,-31.84 186.11,-137.13 h -64.9 c -5.5,34.29 -25.09,80.81 -129.78,80.81 -47.76,0 -101.62,-20.21 -101.62,-71.62 0,-26.94 17.75,-48.37 71.62,-57.55 l 107.14,-18.37 c 34.27,-6.12 131.62,-22.65 131.62,-112.02 0,-111.43 -99.8,-143.252 -187.94,-143.252 -98.57,0 -200.8,34.272 -200.8,154.882 h 64.89" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 6702.65,1433.69 h -64.89 v -437.1 h 64.89 v 437.1" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 6901.63,1344.31 h -1.22 V 996.59 h -64.89 v 437.1 h 75.29 l 281,-347.73 h 1.22 v 347.73 h 64.89 v -437.1 h -75.3 l -280.99,347.72" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 7744.65,1276.35 c -9.79,60.61 -57.54,112.03 -149.37,112.03 -103.45,0 -168.96,-59.38 -168.96,-178.76 0,-82.65 44.69,-167.73 165.29,-167.73 76.53,0 134.68,36.73 153.04,121.82 h 64.89 c -10.4,-96.73 -93.66,-178.14 -218.54,-178.14 -110.2,0 -229.57,60.6 -229.57,230.79 0,127.33 79.59,228.34 228.95,228.34 87.55,0 208.15,-37.34 219.16,-168.35 h -64.89" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 7914.87,1433.69 h 351.4 v -56.32 h -286.51 v -126.73 h 277.93 v -56.32 h -277.93 v -141.41 h 292.62 v -56.32 h -357.51 v 437.1" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 8686.29,1305.74 h -127.95 v 47.75 h 14.7 c 108.96,0 124.88,51.43 127.33,80.2 h 50.81 v -437.1 h -64.89 v 309.15" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 9063.41,1379.81 c -74.07,0 -107.14,-43.46 -107.14,-95.5 0,-52.03 33.07,-95.5 107.14,-95.5 74.69,0 107.74,43.47 107.74,95.5 0,52.04 -33.05,95.5 -107.74,95.5 m -96.11,-282.82 c 6.73,-39.18 43.46,-58.77 85.08,-58.77 70.4,0 121.83,28.77 129.17,155.49 h -1.22 c -16.53,-28.16 -63.05,-56.32 -124.88,-56.32 -74.07,0 -164.06,34.29 -164.06,145.7 0,64.28 46.52,148.15 169.57,148.15 129.78,0 181.82,-79.58 181.82,-213.66 0,-222.83 -134.68,-230.791 -193.45,-230.791 -51.43,0 -131.62,21.431 -143.25,110.201 h 61.22" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 9463.2,1247.58 c 7.96,-0.62 17.14,-0.62 41.02,-0.62 55.09,0 83.26,23.88 83.26,62.45 0,53.87 -47.14,70.4 -93.06,70.4 -64.89,0 -94.89,-32.44 -97.95,-89.38 h -61.22 c 4.9,97.34 69.8,140.8 161.01,140.8 109.58,0 156.1,-56.93 156.1,-116.92 0,-39.18 -19.59,-76.52 -63.66,-87.54 v -1.23 c 48.36,-8.58 82.64,-47.75 82.64,-102.24 0,-73.45 -50.81,-136.511 -166.51,-136.511 -40.41,0 -180.59,0 -180.59,144.471 h 61.22 c 3.67,-72.23 48.97,-93.05 113.86,-93.05 68.57,0 107.13,32.45 107.13,80.81 0,49.59 -44.08,76.52 -107.13,76.52 -22.04,0 -30,-1.22 -36.12,-1.22 v 53.26" style="fill:var(--cream, #f4efe6)"/>
-            <path d="m 9950.55,1379.81 c -104.69,0 -112.03,-119.98 -112.03,-170.79 0,-50.82 7.34,-170.8 112.03,-170.8 104.65,0 112.05,119.98 112.05,170.8 0,50.81 -7.4,170.79 -112.05,170.79 m 0,51.43 c 134.65,0 176.95,-100.4 176.95,-222.22 0,-121.83 -42.3,-222.231 -176.95,-222.231 -134.69,0 -176.92,100.401 -176.92,222.231 0,121.82 42.23,222.22 176.92,222.22" style="fill:var(--cream, #f4efe6)"/>
-          </g>
-        </g>
-      </svg>
+    <a href="/" class="header__logo" aria-label="유스트코리아 홈">
+      <Logo class="header__logo-svg" />
     </a>
 
-    <nav class="header__nav header__nav--right" id="navRight">
-      <ul class="header__nav-list">
-        {rightLinks.map(link => (
-          <li>
-            <a
-              href={link.href}
-              class={`header__nav-link ${currentPath === link.href || currentPath.startsWith(link.href + '/') ? 'is-active' : ''}`}
-            >
-              {link.label}
-            </a>
-          </li>
-        ))}
-        <li class="header__nav-divider"></li>
-        {externalLinks.map(link => (
-          <li>
-            <a href={link.href} class="header__nav-link header__nav-link--external" target="_blank" rel="noopener">
-              {link.label}
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path d="M1 9L9 1M9 1H3M9 1V7" stroke="currentColor" stroke-width="1.2"/>
-              </svg>
-            </a>
-          </li>
-        ))}
+    <nav class="header__nav" aria-label="주 메뉴">
+      <ul class="header__list">
+        {
+          links.map((link) => (
+            <li>
+              <a href={link.href} class="header__link" aria-current={isActive(link.href) ? 'page' : undefined}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <ul class="header__list header__list--ext">
+        {
+          externalLinks.map((link) => (
+            <li>
+              <a href={link.href} class="header__link header__link--ext" target="_blank" rel="noopener">
+                {link.label}
+                <Icon name="external" size={14} />
+              </a>
+            </li>
+          ))
+        }
       </ul>
     </nav>
 
-    <button class="header__menu-btn" id="menuBtn" aria-label="메뉴 열기">
-      <svg class="header__menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <line class="menu-line menu-line--top" x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <line class="menu-line menu-line--mid" x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <line class="menu-line menu-line--bot" x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
+    <button class="header__menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mobileMenu">
+      <span class="sr-only">메뉴</span>
+      <span class="burger" aria-hidden="true"><span></span><span></span></span>
     </button>
   </div>
 
-  <div class="header__mobile-menu" id="mobileMenu">
-    <ul class="header__mobile-list">
-      {leftLinks.map(link => (
-        <li>
-          <a
-            href={link.href}
-            class={`header__nav-link ${currentPath === link.href || currentPath.startsWith(link.href + '/') ? 'is-active' : ''}`}
-          >
-            {link.label}
-          </a>
-        </li>
-      ))}
-      {rightLinks.map(link => (
-        <li>
-          <a
-            href={link.href}
-            class={`header__nav-link ${currentPath === link.href || currentPath.startsWith(link.href + '/') ? 'is-active' : ''}`}
-          >
-            {link.label}
-          </a>
-        </li>
-      ))}
-      <li class="header__nav-divider"></li>
-      {externalLinks.map(link => (
-        <li>
-          <a href={link.href} class="header__nav-link header__nav-link--external" target="_blank" rel="noopener">
-            {link.label}
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-              <path d="M1 9L9 1M9 1H3M9 1V7" stroke="currentColor" stroke-width="1.2"/>
-            </svg>
-          </a>
-        </li>
-      ))}
-    </ul>
+  <div class="mobile-menu" id="mobileMenu" hidden>
+    <nav class="container mobile-menu__inner" aria-label="모바일 메뉴">
+      <ul class="mobile-menu__list">
+        {
+          links.map((link, i) => (
+            <li style={`--i:${i}`}>
+              <a href={link.href} aria-current={isActive(link.href) ? 'page' : undefined}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <ul class="mobile-menu__ext" style={`--i:${links.length}`}>
+        {
+          externalLinks.map((link) => (
+            <li>
+              <a href={link.href} target="_blank" rel="noopener">
+                {link.label}
+                <Icon name="external" size={16} />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
   </div>
 </header>
 
 <style>
   .header {
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
     z-index: 100;
-    height: var(--nav-height);
-    background-color: var(--green-deep);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    transition: height 0.3s, background-color 0.3s;
+    height: var(--nav-h);
+    color: var(--ink);
+    background: rgb(255 255 255 / 0.92);
+    backdrop-filter: saturate(1.6) blur(14px);
+    -webkit-backdrop-filter: saturate(1.6) blur(14px);
+    box-shadow: 0 1px 0 var(--line);
+    transition:
+      background-color 0.35s,
+      box-shadow 0.35s,
+      color 0.35s;
   }
 
-  .header.is-scrolled {
-    height: calc(var(--nav-height) * 0.8);
+  /* 사진 위에 겹쳐 시작 — 글자와 로고는 흰색 */
+  .header--overlay {
+    --logo-ink: #ffffff;
+    position: fixed;
+    inset: 0 0 auto;
+    color: var(--white);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+  }
+
+  .header--overlay.is-scrolled,
+  .header--overlay.is-open {
+    --logo-ink: #1e59ae;
+    color: var(--ink);
+    background: rgb(255 255 255 / 0.94);
+    backdrop-filter: saturate(1.6) blur(14px);
+    -webkit-backdrop-filter: saturate(1.6) blur(14px);
+    box-shadow: 0 1px 0 var(--line);
+  }
+
+  /* backdrop-filter 가 있으면 안의 position:fixed 메뉴가 헤더 높이에 갇힌다 — 열려 있을 때는 끈다 */
+  .header.is-open {
+    background: var(--white);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .header__inner {
     height: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: var(--spacing-lg);
+    gap: 2rem;
   }
 
   .header__logo {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    padding: 0.4rem 1.5rem;
+    flex: none;
+    margin-right: auto;
   }
 
-  .header__logo-svg {
-    height: 80px;
+  .header__logo :global(svg) {
+    height: 52px;
     width: auto;
-    transition: height 0.3s, transform 0.3s;
-  }
-
-  .header.is-scrolled .header__logo-svg {
-    transform: scale(0.8);
+    margin-block: -4px;
   }
 
   .header__nav {
-    flex: 1;
-  }
-
-  .header__nav--left .header__nav-list {
-    justify-content: flex-end;
-  }
-
-  .header__nav--right .header__nav-list {
-    justify-content: flex-start;
-  }
-
-  .header__nav-list {
     display: flex;
     align-items: center;
-    gap: 0;
+    gap: 1.75rem;
+  }
+
+  .header__list {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
     list-style: none;
   }
 
-  .header__nav-link {
+  .header__list--ext {
+    padding-left: 1.25rem;
+    border-left: 1px solid currentColor;
+    border-color: color-mix(in srgb, currentColor 22%, transparent);
+  }
+
+  .header__link {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.3em;
-    padding: 0.5em 0.8em;
-    font-size: 0.8rem;
-    font-weight: 400;
-    color: rgba(244, 239, 230, 0.7);
-    letter-spacing: 0.02em;
-    border-radius: 2px;
-    transition: color 0.2s, background-color 0.2s;
+    gap: 0.25rem;
+    padding: 0.5rem 0.7rem;
+    font-size: var(--t-sm);
+    font-weight: 550;
+    letter-spacing: -0.01em;
     white-space: nowrap;
   }
 
-  .header__nav-link:hover,
-  .header__nav-link.is-active {
-    color: var(--cream);
-    background-color: rgba(255,255,255,0.07);
+  .header__link::after {
+    content: '';
+    position: absolute;
+    left: 0.7rem;
+    right: 0.7rem;
+    bottom: 0.15rem;
+    height: 2px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.35s var(--ease-out);
   }
 
-  .header__nav-link.is-active {
-    color: var(--gold-light);
+  .header__link:hover::after,
+  .header__link[aria-current='page']::after {
+    transform: scaleX(1);
   }
 
-  .header__nav-link--external {
-    color: rgba(184, 146, 74, 0.7);
+  .header__link[aria-current='page'] {
+    font-weight: 700;
   }
 
-  .header__nav-link--external:hover {
-    color: var(--gold);
-    background-color: rgba(184, 146, 74, 0.1);
+  .header__link--ext {
+    opacity: 0.75;
   }
 
-  .header__nav-divider {
-    width: 1px;
-    height: 16px;
-    background-color: rgba(255,255,255,0.15);
-    margin: 0 0.3rem;
+  .header__link--ext::after {
+    display: none;
   }
 
+  .header__link--ext:hover {
+    opacity: 1;
+  }
+
+  /* 햄버거 */
   .header__menu-btn {
     display: none;
-    flex-direction: column;
-    gap: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    -webkit-tap-highlight-color: transparent;
-    outline: none;
+    width: 44px;
+    height: 44px;
+    margin-right: -10px;
+    align-items: center;
+    justify-content: center;
   }
 
-  .header__menu-btn:focus,
-  .header__menu-btn:active {
-    background: none;
-    outline: none;
+  .burger {
+    position: relative;
+    width: 22px;
+    height: 10px;
   }
 
-  .header__menu-icon {
-    color: var(--cream);
+  .burger span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1.6px;
+    background: currentColor;
+    border-radius: 2px;
+    transition:
+      transform 0.4s var(--ease-out),
+      top 0.4s var(--ease-out);
   }
 
-  .menu-line {
-    transform-origin: 12px 12px;
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.25s ease;
+  .burger span:first-child {
+    top: 0;
   }
 
-  .menu-line--top { transform: translateY(-6px); }
-  .menu-line--bot { transform: translateY(6px); }
+  .burger span:last-child {
+    top: calc(100% - 1.6px);
+  }
 
-  .header__menu-btn.is-active .menu-line--top {
+  .is-open .burger span:first-child {
+    top: calc(50% - 0.8px);
     transform: rotate(45deg);
   }
 
-  .header__menu-btn.is-active .menu-line--mid {
-    opacity: 0;
-  }
-
-  .header__menu-btn.is-active .menu-line--bot {
+  .is-open .burger span:last-child {
+    top: calc(50% - 0.8px);
     transform: rotate(-45deg);
   }
 
-  .header__mobile-menu {
-    display: none;
+  /* 모바일 메뉴 */
+  .mobile-menu {
+    position: fixed;
+    inset: var(--nav-h) 0 0;
+    background: var(--white);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
-  @media (width <= 1024px) {
-    .header__nav--left,
-    .header__nav--right {
+  .mobile-menu:not([hidden]) {
+    animation: menu-in 0.35s var(--ease-out);
+  }
+
+  .mobile-menu__inner {
+    padding-block: 1.5rem 3rem;
+  }
+
+  .mobile-menu__list {
+    list-style: none;
+  }
+
+  .mobile-menu__list a {
+    display: block;
+    padding: 0.8rem 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .mobile-menu__list a[aria-current='page'] {
+    color: var(--blue);
+  }
+
+  .mobile-menu__list li,
+  .mobile-menu__ext {
+    animation: menu-item 0.5s var(--ease-out) both;
+    animation-delay: calc(var(--i) * 35ms + 60ms);
+  }
+
+  .mobile-menu__ext {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 2rem;
+  }
+
+  .mobile-menu__ext a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 2.75rem;
+    padding: 0 1.1rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: var(--t-sm);
+    font-weight: 600;
+  }
+
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes menu-item {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+
+  @media (width <= 1100px) {
+    .header__nav {
       display: none;
     }
 
-    .header.is-scrolled .header__mobile-menu {
-      top: calc(var(--nav-height) * 0.8);
-    }
-
-    .header__mobile-menu {
-      display: block;
-      position: fixed;
-      top: var(--nav-height);
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: var(--green-deep);
-      border-top: 1px solid rgba(255,255,255,0.08);
-      overflow-y: auto;
-      z-index: 99;
-      opacity: 0;
-      transform: translateY(-10px);
-      pointer-events: none;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    .header__mobile-menu.is-open {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    .header__mobile-list {
-      list-style: none;
-      padding: var(--spacing-sm) var(--spacing-md);
-    }
-
-    .header__mobile-list li {
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    .header__mobile-menu.is-open .header__mobile-list li {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .header__mobile-menu.is-open .header__mobile-list li:nth-child(1) { transition-delay: 0.05s; }
-    .header__mobile-menu.is-open .header__mobile-list li:nth-child(2) { transition-delay: 0.1s; }
-    .header__mobile-menu.is-open .header__mobile-list li:nth-child(3) { transition-delay: 0.15s; }
-    .header__mobile-menu.is-open .header__mobile-list li:nth-child(4) { transition-delay: 0.2s; }
-    .header__mobile-menu.is-open .header__mobile-list li:nth-child(5) { transition-delay: 0.25s; }
-    .header__mobile-menu.is-open .header__mobile-list li:nth-child(6) { transition-delay: 0.3s; }
-    .header__mobile-menu.is-open .header__mobile-list li:nth-child(7) { transition-delay: 0.35s; }
-    .header__mobile-menu.is-open .header__mobile-list li:nth-child(8) { transition-delay: 0.4s; }
-    .header__mobile-menu.is-open .header__mobile-list li:nth-child(9) { transition-delay: 0.45s; }
-
-    .header__mobile-list .header__nav-link {
-      display: block;
-      padding: 0.8em 0.5em;
-      font-size: 1rem;
-      width: 100%;
-      cursor: pointer;
-    }
-
-    .header__mobile-list .header__nav-link:active {
-      opacity: 0.6;
-    }
-
-    .header__mobile-list .header__nav-divider {
-      width: 100%;
-      height: 1px;
-      margin: 0.5rem 0;
-    }
-
-    .header__inner {
-      justify-content: space-between;
-    }
-
-    .header__logo {
-      padding: 0.4rem 0;
-    }
-
-    .header__logo-svg {
-      height: 60px;
-    }
-
     .header__menu-btn {
-      display: flex;
+      display: inline-flex;
+    }
+  }
+
+  @media (width <= 600px) {
+    .header__logo :global(svg) {
+      height: 44px;
     }
   }
 </style>
 
 <script>
+  const header = document.getElementById('siteHeader');
   const btn = document.getElementById('menuBtn');
-  const mobileMenu = document.getElementById('mobileMenu');
-  btn?.addEventListener('click', () => {
-    btn.classList.toggle('is-active');
-    mobileMenu?.classList.toggle('is-open');
-    document.body.classList.toggle('menu-open');
-  });
+  const menu = document.getElementById('mobileMenu');
 
-  const header = document.querySelector('.header');
-  window.addEventListener('scroll', () => {
-    header?.classList.toggle('is-scrolled', window.scrollY > 30);
+  const setOpen = (open: boolean) => {
+    if (!header || !btn || !menu) return;
+    menu.hidden = !open;
+    header.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', String(open));
+    document.body.classList.toggle('menu-open', open);
+  };
+
+  btn?.addEventListener('click', () => setOpen(menu?.hidden ?? false));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menu && !menu.hidden) {
+      setOpen(false);
+      btn?.focus();
+    }
   });
+  matchMedia('(width > 1100px)').addEventListener('change', (e) => e.matches && setOpen(false));
+
+  const onScroll = () => header?.classList.toggle('is-scrolled', window.scrollY > 24);
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
 </script>

@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request }) => {
     body: JSON.stringify({
       embeds: [{
         title: '📩 유스트코리아 법인 사이트에서 새 문의가 도착했습니다',
-        color: 0x00509e,
+        color: 0x1e59ae,
         fields: [
           { name: '이름', value: name, inline: true },
           { name: '이메일', value: email, inline: true },

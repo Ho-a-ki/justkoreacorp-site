@@ -1,166 +1,247 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import pressItems from '../../data/press.json';
-import celebItems from '../../data/celeb.json';
+import PageHeader from '../../components/PageHeader.astro';
+import Icon from '../../components/Icon.astro';
+import { getPress, getCeleb, coverOf, formatDate, isoDate, youtubeIdOf, vt, displayName } from '../../lib/content';
+
+const [press, celeb] = await Promise.all([getPress(), getCeleb()]);
 ---
 
-<BaseLayout title="미디어" description="유스트코리아의 미디어 노출 및 셀럽 활동을 소개합니다.">
-  <Header />
+<BaseLayout title="미디어" description="잡지와 방송, 유튜브와 셀럽이 소개한 JUST를 모았습니다.">
+  <PageHeader section="미디어" title="JUST를 소개한 곳들" description="잡지와 방송, 유튜브, 그리고 JUST를 일상에서 쓰는 사람들의 이야기를 모았습니다." />
 
-  <main>
-    <section class="page-hero">
-      <div class="container">
-        <p class="page-hero__label">Media</p>
-        <h1 class="page-hero__title">미디어</h1>
-        <p class="page-hero__desc">미디어, 유튜브, 인플루언서와 함께하는 유스트코리아의 이야기</p>
-      </div>
-    </section>
+  <nav class="media-nav" aria-label="미디어 구분">
+    <div class="container chips">
+      <a href="#press" class="chip">언론 보도 <span class="chip__count">{press.length}</span></a>
+      <a href="#celeb" class="chip">JUST를 쓰는 셀럽 <span class="chip__count">{celeb.length}</span></a>
+    </div>
+  </nav>
 
-    <section class="section">
-      <div class="container">
-        <h2 class="section-heading">Press</h2>
-        {pressItems.length === 0 ? (
-          <p class="empty">등록된 Press 항목이 없습니다.</p>
+  <section class="section media" id="press" aria-labelledby="press-title">
+    <div class="container">
+      <h2 class="media__title" id="press-title">언론 보도</h2>
+      {
+        press.length === 0 ? (
+          <p class="empty-state">아직 올라온 기사가 없습니다.</p>
         ) : (
-          <div class="press-grid">
-            {pressItems.map(item => (
-              <a href={`/press/${item.id}`} class="press-card">
-                <div class="press-card__thumb">
-                  <span class="material-symbols-outlined press-card__icon">article</span>
-                  {item.thumbnail && (
-                    <img src={item.thumbnail} alt={item.name} loading="lazy" decoding="async" class="press-card__img" />
-                  )}
-                </div>
-                <div class="press-card__body">
-                  <h3 class="press-card__title">{item.name}</h3>
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
+          <ul class="press-grid">
+            {press.map((item) => {
+              const cover = coverOf(item);
+              return (
+                <li>
+                  <a href={`/press/${item.id}`} class="press-card">
+                    <div class="press-card__img" style={`view-transition-name:${vt('media', item.id)}`}>
+                      {cover && <img src={cover} alt="" loading="lazy" decoding="async" />}
+                    </div>
+                    <time datetime={isoDate(item.data.date)}>{formatDate(item.data.date)}</time>
+                    <h3>{displayName(item.data.name)}</h3>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        )
+      }
+    </div>
+  </section>
 
-    <section class="section section--cream">
-      <div class="container">
-        <h2 class="section-heading">유스트를 사용하는 셀럽</h2>
-        {celebItems.length === 0 ? (
-          <p class="empty">등록된 셀럽 항목이 없습니다.</p>
+  <section class="section section--snow media" id="celeb" aria-labelledby="celeb-title">
+    <div class="container">
+      <h2 class="media__title" id="celeb-title">JUST를 쓰는 셀럽</h2>
+      {
+        celeb.length === 0 ? (
+          <p class="empty-state">아직 올라온 소식이 없습니다.</p>
         ) : (
-          <div class="press-grid">
-            {celebItems.map(item => (
-              <a
-                href={item.url || `/press/${item.id}`}
-                class="press-card"
-                target={item.url ? '_blank' : undefined}
-                rel={item.url ? 'noopener' : undefined}
-              >
-                <div class="press-card__thumb">
-                  <span class="material-symbols-outlined press-card__icon">article</span>
-                  {item.thumbnail && (
-                    <img src={item.thumbnail} alt={item.name} loading="lazy" decoding="async" class="press-card__img" />
-                  )}
-                </div>
-                <div class="press-card__body">
-                  <h3 class="press-card__title">{item.name}</h3>
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  </main>
-
-  <Footer />
+          <ul class="celeb-grid">
+            {celeb.map((item) => {
+              const cover = coverOf(item);
+              const external = item.data.url;
+              const video = youtubeIdOf(item.body);
+              return (
+                <li>
+                  <a
+                    href={external || `/press/${item.id}`}
+                    class="celeb-card"
+                    target={external ? '_blank' : undefined}
+                    rel={external ? 'noopener' : undefined}
+                  >
+                    <div class="celeb-card__img" style={external ? undefined : `view-transition-name:${vt('media', item.id)}`}>
+                      {cover ? (
+                        <img src={cover} alt="" loading="lazy" decoding="async" />
+                      ) : video ? (
+                        <img src={`https://i.ytimg.com/vi/${video}/hqdefault.jpg`} alt="" loading="lazy" decoding="async" />
+                      ) : null}
+                      {(video || external) && (
+                        <span class="celeb-card__badge">
+                          <Icon name={video ? 'play' : 'external'} size={14} />
+                          {video ? '영상' : '바로 가기'}
+                        </span>
+                      )}
+                    </div>
+                    {(() => {
+                      // '정은채-알프스허브밤' → 사람 / 제품
+                      const [who, ...rest] = item.data.name.split(/\s*[-_]\s*/);
+                      return (
+                        <div class="celeb-card__text">
+                          <h3>{who}</h3>
+                          {rest.length > 0 && <p>{rest.join(' ')}</p>}
+                        </div>
+                      );
+                    })()}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        )
+      }
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .section-heading {
-    font-family: var(--font-display);
-    font-size: 1.8rem;
-    color: var(--green-deep);
+  .media-nav {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 10;
+    padding-block: 0.9rem;
+    background: rgb(255 255 255 / 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .media {
+    scroll-margin-top: calc(var(--nav-h) + 4rem);
+  }
+
+  .media__title {
+    font-size: var(--t-xl);
+    font-weight: 750;
+    letter-spacing: -0.04em;
     margin-bottom: 2rem;
   }
 
   .press-grid {
+    list-style: none;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.2rem;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 2.75rem 1.5rem;
   }
 
   .press-card {
-    border: 1px solid var(--cream-dark);
-    background: var(--white);
-    border-radius: 4px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    text-decoration: none;
-  }
-
-  .press-card:hover {
-    border-color: var(--green-mid);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  }
-
-  .press-card__thumb {
-    aspect-ratio: 4 / 3;
-    overflow: hidden;
-    background-color: var(--cream);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .press-card__icon {
-    font-size: 3rem;
-    color: var(--green-mid);
-    opacity: 0.3;
+    display: grid;
+    gap: 0.4rem;
   }
 
   .press-card__img {
-    position: absolute;
-    inset: 0;
+    aspect-ratio: 3 / 4;
+    background: var(--snow);
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    margin-bottom: 0.6rem;
+    box-shadow: 0 1px 0 var(--line);
+  }
+
+  .press-card__img img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: top;
+    transition: transform 0.8s var(--ease-out);
   }
 
-  .press-card:hover .press-card__img {
-    transform: scale(1.05);
-    transition: transform 0.3s ease;
+  .press-card:hover .press-card__img img {
+    transform: scale(1.04);
   }
 
-  .press-card__body {
-    padding: 1rem 1.2rem;
+  .press-card time {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
   }
 
-  .press-card__title {
-    font-size: 0.9rem;
-    color: var(--green-deep);
+  .press-card h3,
+  .celeb-card h3 {
+    font-size: var(--t-md);
+    font-weight: 650;
     line-height: 1.5;
+    letter-spacing: -0.02em;
+    transition: color 0.2s;
   }
 
-  .empty {
-    color: var(--gray);
-    font-size: 0.95rem;
+  .press-card:hover h3,
+  .celeb-card:hover h3 {
+    color: var(--blue);
   }
 
-  @media (width <= 1024px) {
-    .press-grid { grid-template-columns: repeat(3, 1fr); }
+  .celeb-card__text p {
+    margin-top: 0.1rem;
+    font-size: var(--t-sm);
+    color: var(--ink-2);
   }
 
-  @media (width <= 768px) {
-    .press-grid { grid-template-columns: repeat(2, 1fr); }
+  .celeb-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+    gap: 2rem 1.25rem;
   }
 
-  @media (width <= 480px) {
-    .press-grid { grid-template-columns: 1fr; }
+  .celeb-card {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .celeb-card__img {
+    position: relative;
+    aspect-ratio: 1;
+    background: var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+  }
+
+  .celeb-card__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--ease-out);
+  }
+
+  .celeb-card:hover .celeb-card__img img {
+    transform: scale(1.05);
+  }
+
+  .celeb-card__badge {
+    position: absolute;
+    left: 0.6rem;
+    bottom: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.6rem 0.2rem 0.45rem;
+    border-radius: 999px;
+    background: rgb(15 34 54 / 0.72);
+    backdrop-filter: blur(6px);
+    color: var(--white);
+    font-size: var(--t-xs);
+    font-weight: 600;
+  }
+
+  .celeb-card__badge :global(.icon) {
+    fill: currentColor;
+  }
+
+  @media (width <= 560px) {
+    .press-grid,
+    .celeb-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.75rem 0.9rem;
+    }
+
+    .press-card h3,
+    .celeb-card h3 {
+      font-size: var(--t-sm);
+    }
   }
 </style>

@@ -1,94 +1,196 @@
 ---
+import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import pressItems from '../../data/press.json';
-import celebItems from '../../data/celeb.json';
+import Icon from '../../components/Icon.astro';
+import { getPress, getCeleb, coverOf, formatDate, isoDate, neighbors, startsWithCover, youtubeIdOf, vt, displayName } from '../../lib/content';
 
-const allItems = [...pressItems, ...celebItems];
-
-export function getStaticPaths() {
-  const press = import('../../data/press.json').then(m => m.default);
-  const celeb = import('../../data/celeb.json').then(m => m.default);
-  return Promise.all([press, celeb]).then(([p, c]) =>
-    [...p, ...c].map(item => ({ params: { id: item.id } }))
-  );
+export async function getStaticPaths() {
+  const [press, celeb] = await Promise.all([getPress(), getCeleb()]);
+  return [
+    ...press.map((item) => ({ params: { id: item.id }, props: { item, list: press, kind: '언론 보도' } })),
+    ...celeb.map((item) => ({ params: { id: item.id }, props: { item, list: celeb, kind: 'JUST를 쓰는 셀럽' } })),
+  ];
 }
 
-const { id } = Astro.params;
-const item = allItems.find(i => i.id === id)!;
+const { item, list, kind } = Astro.props;
+const { Content } = await render(item);
+const cover = coverOf(item);
+const video = youtubeIdOf(item.body);
+const { prev, next } = neighbors(list, item.id);
+const hideFirstImage = startsWithCover(item);
 ---
 
-<BaseLayout title={item.name} description={`${item.name} — 미디어`}>
-  <Header />
+<BaseLayout title={displayName(item.data.name)} description={`${displayName(item.data.name)} — JUST가 소개된 ${kind}`} image={cover || undefined}>
+  <article class="article">
+    <header class="container article__head">
+      <a href="/press" class="article__back"><Icon name="arrow-left" size={16} /> 미디어</a>
+      <p class="mark">{kind}</p>
+      <h1 class="article__title">{displayName(item.data.name)}</h1>
+      <time datetime={isoDate(item.data.date)}>{formatDate(item.data.date)}</time>
+    </header>
 
-  <main>
-    <section class="page-hero">
-      <div class="container">
-        <a href="/press" class="back-link">← 미디어</a>
-        <div class="hero-tags">
-          {item.tags.map((tag: string) => <span class="tag">{tag}</span>)}
-        </div>
-        <h1 class="page-hero__title">{item.name}</h1>
+    <div class="container article__body">
+      {
+        video ? (
+          <div class="article__video">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${video}`}
+              title={`${item.data.name} 영상`}
+              loading="lazy"
+              allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+            />
+          </div>
+        ) : (
+          cover &&
+          hideFirstImage && (
+            <figure class="article__cover" style={`view-transition-name:${vt('media', item.id)}`}>
+              <img src={cover} alt="" decoding="async" />
+            </figure>
+          )
+        )
+      }
+      <div class:list={['prose', { 'hide-first-image': hideFirstImage && !video }]}>
+        <Content />
       </div>
-    </section>
+      {
+        item.data.url && (
+          <a href={item.data.url} class="btn article__out" target="_blank" rel="noopener">
+            원문 보러 가기 <Icon name="external" size={16} />
+          </a>
+        )
+      }
+    </div>
 
-    <section class="section">
-      <div class="container">
-        <div class="press-content" set:html={item.content} />
-      </div>
-    </section>
-  </main>
-
-  <Footer />
+    <nav class="container pager" aria-label={`다른 ${kind}`}>
+      {
+        prev ? (
+          <a href={`/press/${prev.id}`} class="pager__link">
+            <span>최신 글</span>
+            <strong>{displayName(prev.data.name)}</strong>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next && (
+          <a href={`/press/${next.id}`} class="pager__link pager__link--next">
+            <span>이전 글</span>
+            <strong>{displayName(next.data.name)}</strong>
+          </a>
+        )
+      }
+    </nav>
+  </article>
 </BaseLayout>
 
 <style>
-  .back-link {
-    display: inline-block;
-    font-size: 0.82rem;
-    color: rgba(244, 239, 230, 0.6);
-    margin-bottom: 1.5rem;
+  .article {
+    padding-block: clamp(2rem, 1rem + 3vw, 4rem) var(--section);
+  }
+
+  .article__head,
+  .article__body,
+  .pager {
+    max-width: calc(46rem + var(--gutter) * 2);
+  }
+
+  .article__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--t-sm);
+    font-weight: 600;
+    color: var(--ink-2);
+    margin-bottom: 2rem;
+  }
+
+  .article__back:hover {
+    color: var(--blue);
+  }
+
+  .article__title {
+    margin-top: 0.9rem;
+    font-size: var(--t-2xl);
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1.2;
+  }
+
+  .article__head time {
+    display: block;
+    margin-top: 1rem;
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+  }
+
+  .article__body {
+    margin-top: 2.5rem;
+  }
+
+  .article__cover,
+  .article__video {
+    margin-bottom: 2.5rem;
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--snow);
+  }
+
+  .article__cover img {
+    width: 100%;
+  }
+
+  .article__video {
+    aspect-ratio: 16 / 9;
+  }
+
+  .article__video iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .article__out {
+    margin-top: 2.5rem;
+  }
+
+  .hide-first-image > :global(p:first-child:has(> img:only-child)) {
+    display: none;
+  }
+
+  .pager {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: var(--section);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .pager__link {
+    display: grid;
+    gap: 0.15rem;
+    max-width: 48%;
+  }
+
+  .pager__link span {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+  }
+
+  .pager__link strong {
+    font-weight: 650;
+    line-height: 1.5;
     transition: color 0.2s;
   }
-  .back-link:hover { color: var(--cream); }
 
-  .hero-tags {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
+  .pager__link:hover strong {
+    color: var(--blue);
   }
 
-  .tag {
-    font-size: 0.7rem;
-    padding: 0.2em 0.8em;
-    border: 1px solid rgba(184, 146, 74, 0.4);
-    color: var(--gold);
-    border-radius: 2px;
-    letter-spacing: 0.08em;
+  .pager__link--next {
+    text-align: right;
+    margin-left: auto;
   }
-
-  .press-content {
-    max-width: 720px;
-    margin: 0 auto;
-    font-size: 1rem;
-    line-height: 1.9;
-    color: var(--charcoal);
-  }
-
-  .press-content :global(h2) { font-size: 1.8rem; color: var(--green-deep); margin: 2.5rem 0 1rem; font-family: var(--font-display); }
-  .press-content :global(h3) { font-size: 1.4rem; color: var(--green-deep); margin: 2rem 0 0.75rem; font-family: var(--font-display); }
-  .press-content :global(h4) { font-size: 1.1rem; color: var(--green-deep); margin: 1.5rem 0 0.5rem; }
-  .press-content :global(p) { margin-bottom: 1.2rem; color: var(--charcoal); }
-  .press-content :global(ul), .press-content :global(ol) { padding-left: 1.5rem; margin-bottom: 1.2rem; }
-  .press-content :global(li) { margin-bottom: 0.4rem; }
-  .press-content :global(blockquote) { border-left: 3px solid var(--gold); padding: 0.75rem 1.5rem; margin: 1.5rem 0; background-color: var(--cream); color: var(--gray); }
-  .press-content :global(hr) { border: none; border-top: 1px solid var(--cream-dark); margin: 2rem 0; }
-  .press-content :global(figure) { margin: 2rem 0; }
-  .press-content :global(img) { width: 100%; border-radius: 4px; }
-  .press-content :global(figcaption) { font-size: 0.82rem; color: var(--gray); text-align: center; margin-top: 0.5rem; }
-  .press-content :global(code) { background-color: var(--cream); padding: 0.1em 0.4em; border-radius: 2px; font-size: 0.9em; }
-  .press-content :global(.callout) { background-color: var(--cream); border-left: 3px solid var(--green-mid); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 4px 4px 0; }
-  .press-content :global(a) { color: var(--green-mid); text-decoration: underline; }
 </style>

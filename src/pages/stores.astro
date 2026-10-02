@@ -1,152 +1,344 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import stores from '../data/stores.json';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
+import data from '../data/stores.json';
+
+const stores = data.stores;
+const tags = [...new Set(stores.map((s) => s.tag).filter(Boolean))];
+const spaCount = stores.filter((s) => s.spa).length;
+const mapUrl = (s: (typeof stores)[number]) =>
+  `https://map.naver.com/p/search/${encodeURIComponent(s.address ? `${s.address} 유스트` : `유스트 ${s.name}`)}`;
 ---
 
-<BaseLayout title="스토어" description="유스트코리아 스토어 위치와 운영 정보를 안내합니다.">
-  <Header />
+<BaseLayout title="스토어" description={`전국 ${stores.length}곳의 유스트 매장 위치와 전화번호입니다.`}>
+  <PageHeader
+    section="스토어"
+    title="가까운 매장 찾기"
+    description={`직영점과 백화점까지 전국 ${stores.length}곳에서 JUST를 직접 써 보고 상담받을 수 있습니다.`}
+  >
+    <label class="search" data-store-search>
+      <Icon name="search" />
+      <span class="sr-only">매장 이름이나 지역으로 찾기</span>
+      <input type="search" placeholder="지역이나 매장 이름 (예: 판교, 부산)" autocomplete="off" />
+    </label>
+  </PageHeader>
 
-  <main>
-    <section class="page-hero">
-      <div class="container">
-        <p class="page-hero__label">Stores</p>
-        <h1 class="page-hero__title">스토어</h1>
-        <p class="page-hero__desc">가까운 유스트코리아 스토어를 방문해보세요.</p>
+  <section class="section stores">
+    <div class="container">
+      <div class="stores__filters">
+        <div class="chips" role="group" aria-label="매장 구분" data-store-tags>
+          <button class="chip" aria-pressed="true" data-tag="">전체 <span class="chip__count">{stores.length}</span></button>
+          {
+            tags.map((t) => (
+              <button class="chip" aria-pressed="false" data-tag={t}>
+                {t} <span class="chip__count">{stores.filter((s) => s.tag === t).length}</span>
+              </button>
+            ))
+          }
+        </div>
+        {
+          spaCount > 0 && (
+            <label class="spa-toggle">
+              <input type="checkbox" data-store-spa />
+              <span class="spa-toggle__track" aria-hidden="true" />
+              스파가 있는 매장만 <span class="chip__count">{spaCount}</span>
+            </label>
+          )
+        }
       </div>
-    </section>
 
-    <section class="section">
-      <div class="container">
-        {stores.length === 0 ? (
-          <p class="empty">등록된 스토어가 없습니다.</p>
-        ) : (
-          <div class="store-grid">
-            {stores.map(store => (
-              <div class="store-card">
-                <div class="store-card__header">
-                  <h3 class="store-card__name">{store.name}</h3>
-                  <div class="store-card__badges">
-                    {store.tag && <span class="store-badge">{store.tag}</span>}
-                    {store.spa === '있음' && <span class="store-badge store-badge--spa">SPA</span>}
+      <p class="stores__count" aria-live="polite" data-store-count>{stores.length}곳</p>
+
+      <ul class="store-list" data-store-list>
+        {
+          stores.map((s) => (
+            <li data-tag={s.tag} data-spa={s.spa ? '1' : ''} data-text={`${s.name} ${s.address} ${s.tag}`}>
+              <div class="store">
+                <div class="store__head">
+                  <h2>{s.name}</h2>
+                  <div class="store__badges">
+                    {s.tag && <span class="badge">{s.tag}</span>}
+                    {s.spa && <span class="badge badge--spa">스파</span>}
                   </div>
                 </div>
-                <div class="store-card__body">
-                  {store.address && (
-                    <p class="store-card__info">
-                      <span class="material-symbols-outlined">location_on</span>
-                      {store.address}
-                    </p>
+                {s.address && <p class="store__addr">{s.address}</p>}
+                <div class="store__actions">
+                  {s.phone && (
+                    <a href={`tel:${s.phone.replace(/[^\d+]/g, '')}`} class="store__btn">
+                      <Icon name="phone" size={16} />
+                      {s.phone}
+                    </a>
                   )}
-                  {store.phone && (
-                    <p class="store-card__info">
-                      <span class="material-symbols-outlined">call</span>
-                      {store.phone}
-                    </p>
-                  )}
-                  {store.type && (
-                    <p class="store-card__info">
-                      <span class="material-symbols-outlined">storefront</span>
-                      {store.type}
-                    </p>
-                  )}
+                  <a href={mapUrl(s)} class="store__btn" target="_blank" rel="noopener">
+                    <Icon name="pin" size={16} />
+                    지도
+                  </a>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            </li>
+          ))
+        }
+      </ul>
+      <div class="empty-state" data-store-empty hidden>
+        <strong>조건에 맞는 매장이 없습니다</strong>
+        검색어를 줄이거나 다른 구분을 눌러 보세요.
       </div>
-    </section>
-  </main>
 
-  <Footer />
+      <aside class="stores__online">
+        <div>
+          <h2>근처에 매장이 없다면</h2>
+          <p>온라인 스토어에서 같은 제품을 살 수 있고, 제품 상담은 채팅으로 받을 수 있습니다.</p>
+        </div>
+        <div class="stores__online-actions">
+          <a href="https://justkorea.co.kr/" class="btn" target="_blank" rel="noopener">온라인 스토어 <Icon name="external" size={16} /></a>
+          <a href="https://happytalk.io/l/quU0Cb" class="btn btn--ghost" target="_blank" rel="noopener"><Icon name="chat" size={16} /> 채팅 상담</a>
+        </div>
+      </aside>
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .store-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.2rem;
+  .stores {
+    padding-top: 2.5rem;
   }
 
-  .store-card {
-    border: 1px solid var(--cream-dark);
-    border-radius: 4px;
-    overflow: hidden;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-
-  .store-card:hover {
-    border-color: var(--green-light);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-  }
-
-  .store-card__header {
-    padding: 1.2rem 1.2rem 0.8rem;
+  .stores__filters {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 1rem 2rem;
   }
 
-  .store-card__name {
-    font-size: 1rem;
-    color: var(--green-deep);
+  .spa-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: var(--t-sm);
+    font-weight: 550;
+    color: var(--ink-2);
+    cursor: pointer;
   }
 
-  .store-card__badges {
-    display: flex;
-    gap: 0.3rem;
+  .spa-toggle input {
+    position: absolute;
+    opacity: 0;
   }
 
-  .store-badge {
-    font-size: 0.6rem;
-    padding: 0.15em 0.5em;
-    border-radius: 2px;
-    background-color: var(--cream);
-    color: var(--green-mid);
-    font-weight: 600;
-    letter-spacing: 0.05em;
+  .spa-toggle__track {
+    position: relative;
+    width: 2.6rem;
+    height: 1.5rem;
+    border-radius: 999px;
+    background: var(--line);
+    transition: background-color 0.25s;
   }
 
-  .store-badge--spa {
-    background-color: var(--green-mid);
-    color: #fff;
+  .spa-toggle__track::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(1.5rem - 6px);
+    height: calc(1.5rem - 6px);
+    border-radius: 50%;
+    background: var(--white);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+    transition: transform 0.3s var(--ease-out);
   }
 
-  .store-card__body {
-    padding: 0 1.2rem 1.2rem;
+  .spa-toggle input:checked + .spa-toggle__track {
+    background: var(--herb);
+  }
+
+  .spa-toggle input:checked + .spa-toggle__track::after {
+    transform: translateX(1.1rem);
+  }
+
+  .spa-toggle input:focus-visible + .spa-toggle__track {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+  }
+
+  .stores__count {
+    margin-top: 2rem;
+    font-size: var(--t-sm);
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .store-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+    margin-top: 1rem;
+    border-top: 2px solid var(--ink);
+  }
+
+  .store-list li {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .store {
+    height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.5rem;
+    padding: 1.5rem 1.5rem 1.5rem 0;
   }
 
-  .store-card__info {
+  .store-list li:nth-child(n) .store {
+    padding-left: 0;
+  }
+
+  .store__head {
     display: flex;
     align-items: flex-start;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    color: var(--gray);
+    justify-content: space-between;
+    gap: 1rem;
   }
 
-  .store-card__info .material-symbols-outlined {
-    font-size: 1rem;
-    color: var(--green-mid);
-    flex-shrink: 0;
-    margin-top: 0.15rem;
+  .store__head h2 {
+    font-size: var(--t-lg);
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
 
-  .empty {
-    color: var(--gray);
-    font-size: 0.95rem;
+  .store__badges {
+    display: flex;
+    gap: 0.3rem;
+    flex: none;
   }
 
-  @media (width <= 1024px) {
-    .store-grid { grid-template-columns: repeat(2, 1fr); }
+  .badge {
+    font-size: var(--t-xs);
+    font-weight: 600;
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    white-space: nowrap;
   }
 
-  @media (width <= 640px) {
-    .store-grid { grid-template-columns: 1fr; }
+  .badge--spa {
+    border-color: transparent;
+    background: var(--herb-wash);
+    color: var(--herb);
+  }
+
+  .store__addr {
+    font-size: var(--t-sm);
+    color: var(--ink-2);
+  }
+
+  .store__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: auto;
+    padding-top: 0.6rem;
+  }
+
+  .store__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 2.5rem;
+    padding: 0 0.95rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: var(--t-sm);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    transition:
+      border-color 0.2s,
+      color 0.2s,
+      background-color 0.2s;
+  }
+
+  .store__btn:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+    background: var(--blue-wash);
+  }
+
+  .stores__online {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem 3rem;
+    margin-top: 4rem;
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    background: var(--snow);
+    border-radius: var(--r-md);
+  }
+
+  .stores__online h2 {
+    font-size: var(--t-xl);
+    font-weight: 750;
+    letter-spacing: -0.04em;
+  }
+
+  .stores__online p {
+    margin-top: 0.4rem;
+    color: var(--ink-2);
+  }
+
+  .stores__online-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  @media (width > 700px) {
+    .store-list {
+      column-gap: 2.5rem;
+    }
   }
 </style>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>('[data-store-search] input');
+  const spa = document.querySelector<HTMLInputElement>('[data-store-spa]');
+  const tagGroup = document.querySelector('[data-store-tags]');
+  const tagButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-store-tags] .chip')];
+  const items = [...document.querySelectorAll<HTMLElement>('[data-store-list] > li')];
+  const count = document.querySelector('[data-store-count]');
+  const empty = document.querySelector<HTMLElement>('[data-store-empty]');
+  let tag = '';
+
+  const normalize = (s: string) => s.replace(/\s+/g, '').toLowerCase();
+
+  const apply = () => {
+    const q = normalize(input?.value ?? '');
+    let shown = 0;
+    for (const li of items) {
+      const hit =
+        (!tag || li.dataset.tag === tag) &&
+        (!spa?.checked || li.dataset.spa === '1') &&
+        (!q || normalize(li.dataset.text ?? '').includes(q));
+      li.hidden = !hit;
+      if (hit) shown++;
+    }
+    if (count) count.textContent = shown === items.length ? `${items.length}곳` : `${items.length}곳 중 ${shown}곳`;
+    if (empty) empty.hidden = shown > 0;
+  };
+
+  tagGroup?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.chip');
+    if (!btn) return;
+    tag = btn.dataset.tag ?? '';
+    tagButtons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+    apply();
+  });
+  input?.addEventListener('input', apply);
+  spa?.addEventListener('change', apply);
+  apply();
+</script>
