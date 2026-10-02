@@ -1,6 +1,7 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+import { getSecret } from 'astro:env/server';
 
 export const POST: APIRoute = async ({ request }) => {
   const data = await request.json();
@@ -10,7 +11,8 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: '필수 항목을 입력해주세요.' }), { status: 400 });
   }
 
-  const webhookUrl = import.meta.env.DISCORD_WEBHOOK;
+  // 요청 때 읽는다 (import.meta.env 는 빌드 때 값이 코드에 박힌다)
+  const webhookUrl = getSecret('DISCORD_WEBHOOK');
   if (!webhookUrl) {
     return new Response(JSON.stringify({ error: '서버 설정 오류' }), { status: 500 });
   }

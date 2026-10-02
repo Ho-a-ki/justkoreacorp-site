@@ -7,10 +7,11 @@
 //   CMS_DISCORD_WEBHOOK  인증번호를 보낼 Discord 웹훅 (없으면 DISCORD_WEBHOOK 사용)
 
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { getSecret } from 'astro:env/server';
 
 export const REPO = 'Ho-a-ki/justkoreacorp-site';
 // 테스트할 때만 CMS_BRANCH 로 다른 브랜치를 쓴다. 운영은 main.
-export const BRANCH = process.env.CMS_BRANCH || import.meta.env?.CMS_BRANCH || 'main';
+export const BRANCH = getSecret('CMS_BRANCH') || 'main';
 export const SESSION_HOURS = 12;
 
 /** 운영자가 고칠 수 있는 경로. 이 밖의 파일은 저장을 거부한다. */
@@ -22,8 +23,10 @@ export const isAllowedPath = (path) =>
   !path.startsWith('/') &&
   ALLOWED_PATHS.some((allowed) => (allowed.endsWith('/') ? path.startsWith(allowed) : path === allowed));
 
-// 운영(Netlify)은 process.env, 개발 서버(astro dev)는 .env 를 읽은 import.meta.env
-export const env = (name) => process.env[name] ?? import.meta.env?.[name] ?? '';
+// 요청 때 읽는다: 운영(Netlify)은 process.env, 개발 서버(astro dev)는 .env.
+// ⚠ import.meta.env 를 쓰면 안 된다: import.meta.env[name] 처럼 이름을 변수로 읽으면 Vite 가
+//   빌드할 때 .env 의 비밀값을 통째로 서버 코드에 박아 넣는다.
+export const env = (name) => getSecret(name) ?? '';
 
 const sha256 = (value) => createHash('sha256').update(String(value)).digest();
 
