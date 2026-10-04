@@ -6,6 +6,10 @@
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "binding": "ASSETS", "directory": "./dist" },
+  "routes": [
+    { "pattern": "justkoreacorp.com", "custom_domain": true },
+    { "pattern": "www.justkoreacorp.com", "custom_domain": true }
+  ],
   "observability": { "enabled": true }
   // 비밀값: npx wrangler secret put DISCORD_WEBHOOK
 }
