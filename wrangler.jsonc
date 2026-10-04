@@ -1,0 +1,11 @@
+{
+  // 법인 사이트 (justkoreacorp.com). 정적 페이지는 dist/, 문의 폼(/api/contact)만 Worker 가 처리한다.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "justkoreacorp",
+  "main": "./dist/_worker.js/index.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "binding": "ASSETS", "directory": "./dist" },
+  "observability": { "enabled": true }
+  // 비밀값: npx wrangler secret put DISCORD_WEBHOOK
+}

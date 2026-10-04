@@ -1,6 +1,8 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+// 비밀값은 요청 때 Worker 환경에서 읽는다 (import.meta.env 로 읽으면 빌드 결과에 값이 박힐 수 있다)
+import { env } from 'cloudflare:workers';
 
 export const POST: APIRoute = async ({ request }) => {
   const data = await request.json();
@@ -10,7 +12,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: '필수 항목을 입력해주세요.' }), { status: 400 });
   }
 
-  const webhookUrl = import.meta.env.DISCORD_WEBHOOK;
+  const webhookUrl = (env as { DISCORD_WEBHOOK?: string }).DISCORD_WEBHOOK;
   if (!webhookUrl) {
     return new Response(JSON.stringify({ error: '서버 설정 오류' }), { status: 500 });
   }
