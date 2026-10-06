@@ -2,7 +2,7 @@
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/Icon.astro';
-import { getHerbs, coverOf, neighbors, startsWithCover, vt } from '../../lib/content';
+import { getHerbs, coverOf, responsive, neighbors, startsWithCover, vt } from '../../lib/content';
 
 export async function getStaticPaths() {
   const herbs = await getHerbs();
@@ -12,6 +12,7 @@ export async function getStaticPaths() {
 const { herb, herbs } = Astro.props;
 const { Content } = await render(herb);
 const cover = coverOf(herb);
+const coverImg = responsive(cover, '(min-width: 860px) 40vw, 100vw');
 const { prev, next } = neighbors(herbs, herb.id);
 const hideFirstImage = startsWithCover(herb);
 ---
@@ -22,7 +23,7 @@ const hideFirstImage = startsWithCover(herb);
       <aside class="herb__aside">
         <a href="/herb" class="herb__back"><Icon name="arrow-left" size={16} /> 허브 백과사전</a>
         <div class="herb__img" style={`view-transition-name:${vt('herb', herb.id)}`}>
-          {cover ? <img src={cover} alt={herb.data.name} decoding="async" /> : <Icon name="leaf" size={48} />}
+          {cover ? <img {...coverImg} alt={herb.data.name} fetchpriority="high" decoding="async" /> : <Icon name="leaf" size={48} />}
         </div>
       </aside>
 

@@ -2,7 +2,7 @@
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/Icon.astro';
-import { getPress, getCeleb, coverOf, formatDate, isoDate, neighbors, startsWithCover, youtubeIdOf, vt, displayName } from '../../lib/content';
+import { getPress, getCeleb, coverOf, responsive, formatDate, isoDate, neighbors, startsWithCover, youtubeIdOf, vt, displayName } from '../../lib/content';
 
 export async function getStaticPaths() {
   const [press, celeb] = await Promise.all([getPress(), getCeleb()]);
@@ -45,7 +45,7 @@ const hideFirstImage = startsWithCover(item);
           cover &&
           hideFirstImage && (
             <figure class="article__cover" style={`view-transition-name:${vt('media', item.id)}`}>
-              <img src={cover} alt="" decoding="async" />
+              <img {...responsive(cover, '(min-width: 760px) 704px, 100vw')} alt="" decoding="async" />
             </figure>
           )
         )

@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
-import { getActivities, getHerbs, getPress, getFaqGroups, coverOf, thumbOf, formatDate, isoDate, displayName } from '../lib/content';
+import { getActivities, getHerbs, getPress, getFaqGroups, coverOf, thumbOf, responsive, formatDate, isoDate, displayName } from '../lib/content';
 import storeData from '../data/stores.json';
 
 const [herbs, activities, press, faqGroups] = await Promise.all([getHerbs(), getActivities(), getPress(), getFaqGroups()]);
@@ -39,13 +39,16 @@ const destinations = [
 const latestActivities = activities.slice(0, 3);
 const latestPress = press.slice(0, 4);
 const alpenrose = herbHref('알펜로즈');
+const hero = responsive('/images/hero/banner.jpg', '100vw', ['sm', 'lg', 'xl']);
+const flowers = responsive('/images/philosophy/flowers.jpg', '(min-width: 960px) 40vw, 100vw');
+const scientist = responsive('/images/philosophy/scientist.jpg', '(min-width: 960px) 25vw, 50vw');
 ---
 
 <BaseLayout overlayHeader>
   <!-- 첫 화면 -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero__media" aria-hidden="true">
-      <img src="/images/hero/banner.jpg" alt="" fetchpriority="high" decoding="async" />
+      <img {...hero} alt="" fetchpriority="high" decoding="async" />
     </div>
     <div class="container hero__content">
       <p class="hero__origin">
@@ -107,7 +110,7 @@ const alpenrose = herbHref('알펜로즈');
             <li class="reveal">
               <a href={herbHref(s.name)} class="specimen">
                 <div class="specimen__img">
-                  <img src={s.img} alt="" loading="lazy" decoding="async" />
+                  <img src={thumbOf(s.img)} alt="" loading="lazy" decoding="async" />
                 </div>
                 <div class="specimen__label">
                   <strong>{s.name}</strong>
@@ -127,9 +130,9 @@ const alpenrose = herbHref('알펜로즈');
   <section class="section philosophy">
     <div class="container philosophy__grid">
       <div class="philosophy__media">
-        <img class="philosophy__main" src="/images/philosophy/flowers.jpg" alt="알프스 들판에 가득 핀 에델바이스" loading="lazy" decoding="async" />
-        <img class="philosophy__sub" src="/images/philosophy/scientist.jpg" alt="연구소에서 원료의 향을 확인하는 연구원" loading="lazy" decoding="async" />
-        <img class="philosophy__bottle" src="/images/philosophy/oil-bottle.png" alt="JUST 31 허브 에센셜 오일" loading="lazy" decoding="async" />
+        <img class="philosophy__main" {...flowers} alt="알프스 들판에 가득 핀 에델바이스" loading="lazy" decoding="async" />
+        <img class="philosophy__sub" {...scientist} alt="연구소에서 원료의 향을 확인하는 연구원" loading="lazy" decoding="async" />
+        <img class="philosophy__bottle" src={thumbOf('/images/philosophy/oil-bottle.png')} alt="JUST 31 허브 에센셜 오일" loading="lazy" decoding="async" />
       </div>
       <div class="philosophy__text">
         <p class="mark">원료를 고르는 기준</p>

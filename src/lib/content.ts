@@ -1,4 +1,3 @@
-import { existsSync } from 'node:fs';
 import { getCollection, type CollectionEntry } from 'astro:content';
 
 import { FAQ_CATEGORIES } from './faq-categories';
@@ -42,15 +41,7 @@ export const firstImageOf = (body?: string) => body?.match(/!\[[^\]]*\]\(\s*<?([
 /** 대표 이미지가 비어 있으면 본문의 첫 이미지를 쓴다 */
 export const coverOf = (entry: { data: { thumbnail?: string }; body?: string }) => entry.data.thumbnail || firstImageOf(entry.body);
 
-/**
- * 목록 화면용 작은 섬네일 경로 (scripts/thumbs.mjs 가 public/_thumbs 에 만든다).
- * 섬네일이 아직 없으면 원본을 그대로 쓴다.
- */
-export const thumbOf = (src?: string) => {
-  if (!src?.startsWith('/images/')) return src;
-  const thumb = '/_thumbs' + decodeURI(src).replace(/\.[^./]+$/, '.webp');
-  return existsSync('public' + thumb) ? encodeURI(thumb) : src;
-};
+export { thumbOf, responsive } from './images.mjs';
 
 /** 본문이 대표 이미지로 시작하면 상세 화면에서 그 첫 이미지를 감춘다 (같은 사진이 두 번 보이지 않게) */
 export const startsWithCover = (entry: { data: { thumbnail?: string }; body?: string }) => {
