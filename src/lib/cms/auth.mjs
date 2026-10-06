@@ -195,7 +195,7 @@ const PAGE = `<!doctype html>
     wrong_code: (d) => '인증번호가 맞지 않습니다. (' + d.left + '번 남음)',
     expired: () => '인증번호가 만료됐습니다. 비밀번호부터 다시 해 주세요.',
     not_configured: () => '관리자 로그인이 아직 설정되지 않았습니다. 담당자에게 알려 주세요.',
-    github_not_configured: () => 'GitHub 연결 토큰(CMS_GITHUB_TOKEN)이 아직 등록되지 않았습니다. Netlify 환경변수에 등록한 뒤 다시 배포해 주세요.',
+    github_not_configured: () => 'GitHub 연결 토큰(CMS_GITHUB_TOKEN)이 아직 등록되지 않았습니다. Cloudflare Worker 비밀값에 등록해 주세요.',
   };
   const explain = (d) => (messages[d.error] || (() => '로그인하지 못했습니다. 잠시 뒤에 다시 시도하세요.'))(d);
   let challenge = '';

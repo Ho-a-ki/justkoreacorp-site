@@ -1,7 +1,8 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
-import { getSecret } from 'astro:env/server';
+// 비밀값은 요청 때 Worker 환경에서 읽는다 (import.meta.env 로 읽으면 빌드 결과에 값이 박힐 수 있다)
+import { env } from 'cloudflare:workers';
 
 export const POST: APIRoute = async ({ request }) => {
   const data = await request.json();
@@ -11,8 +12,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: '필수 항목을 입력해주세요.' }), { status: 400 });
   }
 
-  // 요청 때 읽는다 (import.meta.env 는 빌드 때 값이 코드에 박힌다)
-  const webhookUrl = getSecret('DISCORD_WEBHOOK');
+  const webhookUrl = (env as { DISCORD_WEBHOOK?: string }).DISCORD_WEBHOOK;
   if (!webhookUrl) {
     return new Response(JSON.stringify({ error: '서버 설정 오류' }), { status: 500 });
   }
@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
     body: JSON.stringify({
       embeds: [{
         title: '📩 유스트코리아 법인 사이트에서 새 문의가 도착했습니다',
-        color: 0x1e59ae,
+        color: 0x00509e,
         fields: [
           { name: '이름', value: name, inline: true },
           { name: '이메일', value: email, inline: true },

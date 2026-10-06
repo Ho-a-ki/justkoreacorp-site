@@ -8,11 +8,11 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/netlify": "^6.6.5",
-    "@netlify/blobs": "^10.7.13",
+    "@astrojs/cloudflare": "^12.6.13",
+    "@astrojs/node": "^9.5.5",
     "astro": "^5.0.0"
   },
   "devDependencies": {
-    "sharp": "^0.34.5"
+    "wrangler": "^4.147.0"
   }
 }

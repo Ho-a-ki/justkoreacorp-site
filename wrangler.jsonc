@@ -1,0 +1,31 @@
+{
+  // 법인 사이트 (justkoreacorp.com). 정적 페이지는 dist/, 문의 폼(/api/contact)·관리자 로그인(/api/cms-auth, /api/gh/*)만 Worker 가 처리한다.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "justkoreacorp",
+  "main": "./dist/_worker.js/index.js",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "binding": "ASSETS", "directory": "./dist" },
+  "kv_namespaces": [
+    // 관리자 로그인 시도 횟수·인증번호 (src/lib/cms/cms.mjs 의 authStore). Astro 세션도 같은 곳을 쓴다.
+    { "binding": "CMS_KV", "id": "975271d0ca2b4896ad0ba3bbadcd6282" }
+  ],
+  "routes": [
+    { "pattern": "justkoreacorp.com", "custom_domain": true },
+    { "pattern": "www.justkoreacorp.com", "custom_domain": true }
+  ],
+  "observability": { "enabled": true },
+  // 비밀값: npx wrangler secret put DISCORD_WEBHOOK / CMS_GITHUB_TOKEN / CMS_PASSWORD
+
+  "env": {
+    // 미리보기: npx wrangler deploy --env preview → https://justkoreacorp-preview.justkorea.workers.dev
+    // ⚠ routes: [] 를 꼭 둔다. 빼면 위 운영 도메인을 물려받아 justkoreacorp.com 이 미리보기로 넘어간다.
+    // 비밀값은 --env preview 로 따로 넣는다.
+    "preview": {
+      "name": "justkoreacorp-preview",
+      "workers_dev": true,
+      "routes": [],
+      "kv_namespaces": [{ "binding": "CMS_KV", "id": "975271d0ca2b4896ad0ba3bbadcd6282" }]
+    }
+  }
+}

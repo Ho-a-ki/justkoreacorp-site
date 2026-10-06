@@ -1,17 +1,22 @@
 // 관리자 페이지(/admin) 로그인과 GitHub 중계에서 함께 쓰는 것들. (repureum 과 같은 구조)
 //
-// 환경변수 (Netlify → Site configuration → Environment variables)
+// 비밀값 (Cloudflare → Workers → justkoreacorp → Settings → Variables and Secrets, 또는 npx wrangler secret put <이름>)
+// 로컬 개발은 .dev.vars 에 둔다 (git 에 올리지 않음)
 //   CMS_GITHUB_TOKEN     (필수) 이 레포의 Contents 읽기·쓰기만 허용한 fine-grained 토큰
 //   CMS_PASSWORD         (필수) 관리자 비밀번호, 8자 이상
 //   CMS_SESSION_SECRET   (선택) 세션 토큰 서명 키. 없으면 CMS_GITHUB_TOKEN 에서 만든다
 //   CMS_DISCORD_WEBHOOK  인증번호를 보낼 Discord 웹훅 (없으면 DISCORD_WEBHOOK 사용)
 
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
-import { getSecret } from 'astro:env/server';
+import { env as workerEnv } from 'cloudflare:workers';
+
+// 비밀값은 요청 때 Worker 의 env 에서 읽는다.
+// ⚠ import.meta.env 를 쓰면 안 된다: 빌드할 때 .env 의 값이 코드에 그대로 박힌다.
+export const env = (name) => (typeof workerEnv?.[name] === 'string' ? workerEnv[name] : '');
 
 export const REPO = 'Ho-a-ki/justkoreacorp-site';
 // 테스트할 때만 CMS_BRANCH 로 다른 브랜치를 쓴다. 운영은 main.
-export const BRANCH = getSecret('CMS_BRANCH') || 'main';
+export const BRANCH = env('CMS_BRANCH') || 'main';
 export const SESSION_HOURS = 12;
 
 /** 운영자가 고칠 수 있는 경로. 이 밖의 파일은 저장을 거부한다. */
@@ -22,11 +27,6 @@ export const isAllowedPath = (path) =>
   !path.includes('..') &&
   !path.startsWith('/') &&
   ALLOWED_PATHS.some((allowed) => (allowed.endsWith('/') ? path.startsWith(allowed) : path === allowed));
-
-// 요청 때 읽는다: 운영(Netlify)은 process.env, 개발 서버(astro dev)는 .env.
-// ⚠ import.meta.env 를 쓰면 안 된다: import.meta.env[name] 처럼 이름을 변수로 읽으면 Vite 가
-//   빌드할 때 .env 의 비밀값을 통째로 서버 코드에 박아 넣는다.
-export const env = (name) => getSecret(name) ?? '';
 
 const sha256 = (value) => createHash('sha256').update(String(value)).digest();
 
@@ -71,25 +71,18 @@ export function verifyToken(token, secret) {
 }
 
 /**
- * 로그인 시도 횟수·인증번호를 담는 저장소. Netlify Blobs 를 쓴다.
- * 로컬 테스트(CMS_LOCAL=1)에서만 메모리로 대신한다 — 운영에서 저장소가 없으면 로그인을 막는다.
+ * 로그인 시도 횟수·인증번호를 담는 저장소. Cloudflare KV(wrangler.jsonc 의 CMS_KV)를 쓴다.
+ * 로컬(astro dev)도 같은 KV 를 흉내 내서 그대로 쓴다. KV 가 없으면 로그인을 막는다.
+ * 시도 횟수·인증번호는 길어야 1시간이면 쓸모가 없어 그 뒤 저절로 지워지게 한다.
  */
-let memory;
 export async function authStore() {
-  if (env('CMS_LOCAL') === '1') {
-    memory ??= new Map();
-    return {
-      get: async (key) => (memory.has(key) ? JSON.parse(memory.get(key)) : null),
-      setJSON: async (key, value) => void memory.set(key, JSON.stringify(value)),
-      delete: async (key) => void memory.delete(key),
-    };
-  }
-  const { getStore } = await import('@netlify/blobs');
-  const store = getStore({ name: 'cms-auth', consistency: 'strong' });
+  const kv = workerEnv?.CMS_KV;
+  if (!kv) throw new Error('CMS_KV binding is missing');
+  const key = (k) => `cms-auth:${k}`;
   return {
-    get: (key) => store.get(key, { type: 'json' }),
-    setJSON: (key, value) => store.setJSON(key, value),
-    delete: (key) => store.delete(key),
+    get: (k) => kv.get(key(k), 'json'),
+    setJSON: (k, value) => kv.put(key(k), JSON.stringify(value), { expirationTtl: 3600 }),
+    delete: (k) => kv.delete(key(k)),
   };
 }
 
