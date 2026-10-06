@@ -120,10 +120,10 @@ const hideFirstImage = startsWithCover(herb);
 
   .herb__title {
     margin-top: 0.9rem;
-    font-size: var(--t-3xl);
+    font-size: var(--t-title);
     font-weight: 800;
-    letter-spacing: -0.05em;
-    line-height: 1.08;
+    letter-spacing: var(--ls-title);
+    line-height: 1.2;
   }
 
   .herb__tags {
@@ -144,6 +144,15 @@ const hideFirstImage = startsWithCover(herb);
 
   .herb__prose {
     margin-top: 2rem;
+    color: var(--ink);
+    line-height: 1.48;
+  }
+
+  /* '기원', '유효 성분에 대해' 같은 소제목: 허브 이름과 같은 색, 크기는 줄인다 */
+  .herb__prose :global(h2) {
+    font-size: 1.275rem;
+    color: var(--ink);
+    letter-spacing: -0.02em;
   }
 
   .hide-first-image > :global(p:first-child:has(> img:only-child)) {

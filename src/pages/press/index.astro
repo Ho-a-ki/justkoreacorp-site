@@ -45,7 +45,7 @@ const [press, celeb] = await Promise.all([getPress(), getCeleb()]);
     </div>
   </section>
 
-  <section class="section section--snow media" id="celeb" aria-labelledby="celeb-title">
+  <section class="section media" id="celeb" aria-labelledby="celeb-title">
     <div class="container">
       <h2 class="media__title" id="celeb-title">JUST를 쓰는 셀럽</h2>
       {
@@ -105,14 +105,20 @@ const [press, celeb] = await Promise.all([getPress(), getCeleb()]);
     top: var(--nav-h);
     z-index: 10;
     padding-block: 0.9rem;
-    background: rgb(255 255 255 / 0.92);
+    background: rgb(247 248 249 / 0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--line);
   }
 
+  /* 흰 배경 섬네일이 바탕과 구분되도록 페이지 바탕을 아주 연한 회색으로 깐다 */
   .media {
     scroll-margin-top: calc(var(--nav-h) + 4rem);
+    background: #f7f8f9;
+  }
+
+  .media + .media {
+    border-top: 1px solid var(--line);
   }
 
   .media__title {
@@ -126,21 +132,20 @@ const [press, celeb] = await Promise.all([getPress(), getCeleb()]);
     list-style: none;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-    gap: 2.75rem 1.5rem;
+    gap: 3.3rem 1.5rem;
   }
 
   .press-card {
     display: grid;
-    gap: 0.4rem;
+    gap: calc(0.4rem - 4px);
   }
 
   .press-card__img {
     aspect-ratio: 3 / 4;
-    background: var(--snow);
+    background: var(--white);
     border-radius: var(--r-sm);
     overflow: hidden;
     margin-bottom: 0.6rem;
-    box-shadow: 0 1px 0 var(--line);
   }
 
   .press-card__img img {
@@ -168,6 +173,10 @@ const [press, celeb] = await Promise.all([getPress(), getCeleb()]);
     line-height: 1.5;
     letter-spacing: -0.02em;
     transition: color 0.2s;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .press-card:hover h3,
