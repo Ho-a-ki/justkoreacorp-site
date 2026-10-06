@@ -3,8 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "node scripts/thumbs.mjs && astro dev",
+    "build": "node scripts/thumbs.mjs && astro build",
     "preview": "astro preview"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "astro": "^5.0.0"
   },
   "devDependencies": {
+    "sharp": "^0.34.5",
     "wrangler": "^4.147.0"
   }
 }

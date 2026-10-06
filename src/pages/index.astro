@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
-import { getActivities, getHerbs, getPress, getFaqGroups, coverOf, formatDate, isoDate, displayName } from '../lib/content';
+import { getActivities, getHerbs, getPress, getFaqGroups, coverOf, thumbOf, formatDate, isoDate, displayName } from '../lib/content';
 import storeData from '../data/stores.json';
 
 const [herbs, activities, press, faqGroups] = await Promise.all([getHerbs(), getActivities(), getPress(), getFaqGroups()]);
@@ -183,7 +183,7 @@ const alpenrose = herbHref('알펜로즈');
                 <li>
                   <a href={`/press/${p.id}`} class="press-mini">
                     <div class="press-mini__img">
-                      {coverOf(p) && <img src={coverOf(p)} alt="" loading="lazy" decoding="async" />}
+                      {coverOf(p) && <img src={thumbOf(coverOf(p))} alt="" loading="lazy" decoding="async" />}
                     </div>
                     <span>{displayName(p.data.name)}</span>
                   </a>

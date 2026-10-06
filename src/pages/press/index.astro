@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import Icon from '../../components/Icon.astro';
-import { getPress, getCeleb, coverOf, formatDate, isoDate, youtubeIdOf, vt, displayName } from '../../lib/content';
+import { getPress, getCeleb, coverOf, thumbOf, formatDate, isoDate, youtubeIdOf, vt, displayName } from '../../lib/content';
 
 const [press, celeb] = await Promise.all([getPress(), getCeleb()]);
 ---
@@ -26,7 +26,7 @@ const [press, celeb] = await Promise.all([getPress(), getCeleb()]);
         ) : (
           <ul class="press-grid">
             {press.map((item) => {
-              const cover = coverOf(item);
+              const cover = thumbOf(coverOf(item));
               return (
                 <li>
                   <a href={`/press/${item.id}`} class="press-card">
@@ -54,7 +54,7 @@ const [press, celeb] = await Promise.all([getPress(), getCeleb()]);
         ) : (
           <ul class="celeb-grid">
             {celeb.map((item) => {
-              const cover = coverOf(item);
+              const cover = thumbOf(coverOf(item));
               const external = item.data.url;
               const video = youtubeIdOf(item.body);
               return (

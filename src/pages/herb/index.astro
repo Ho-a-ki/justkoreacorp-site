@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import Icon from '../../components/Icon.astro';
-import { getHerbs, coverOf, vt } from '../../lib/content';
+import { getHerbs, coverOf, thumbOf, vt } from '../../lib/content';
 
 const herbs = await getHerbs();
 ---
@@ -26,7 +26,7 @@ const herbs = await getHerbs();
       <ul class="herbs__grid" data-herb-list>
         {
           herbs.map((herb) => {
-            const cover = coverOf(herb);
+            const cover = thumbOf(coverOf(herb));
             return (
               <li data-name={herb.data.name}>
                 <a href={`/herb/${herb.id}`} class="herb-card">
