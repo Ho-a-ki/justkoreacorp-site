@@ -1,172 +1,224 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import activities from '../../data/activities.json';
+import PageHeader from '../../components/PageHeader.astro';
+import { getActivities, coverOf, thumbOf, formatMonthDay, isoDate } from '../../lib/content';
 
-const years = [...new Set(activities.map(a => a.year).filter(Boolean))].sort((a, b) => Number(b) - Number(a));
-
-const categoryColors: Record<string, string> = {
-  '행사/활동': 'orange',
-  '수상': 'yellow',
-  '교육/강연': 'purple',
-  '방문/미팅': 'blue',
-  '기타': 'gray',
-};
+const activities = await getActivities();
+const yearOf = (d: Date) => Number(isoDate(d).slice(0, 4));
+const years = [...new Set(activities.map((a) => yearOf(a.data.date)))];
+const categories = [...new Set(activities.map((a) => a.data.category).filter(Boolean))] as string[];
 ---
 
-<BaseLayout title="주요 활동" description="유스트코리아의 연혁 및 주요 활동을 소개합니다.">
-  <Header />
+<BaseLayout title="주요 활동" description="수상, 강연, 행사와 나눔까지 유스트코리아가 걸어온 일들입니다.">
+  <PageHeader section="주요 활동" title="유스트코리아가 걸어온 일" description="상을 받고, 강연을 하고, 사람들을 만난 기록입니다." />
 
-  <main>
-    <section class="page-hero">
-      <div class="container">
-        <p class="page-hero__label">Activities</p>
-        <h1 class="page-hero__title">연혁 및<br />주요 활동</h1>
-        <p class="page-hero__desc">유스트코리아가 만들어가는 다양한 활동과 사회적 가치를 소개합니다.</p>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        {years.map(year => (
-          <div class="year-group">
-            <div class="year-label">{year}</div>
-            <div class="timeline">
-              {activities.filter(a => a.year === year).map(activity => (
-                <a href={`/activities/${activity.id}`} class="timeline-item">
-                  <div class="timeline-dot"></div>
-                  <div class="timeline-card">
-                    <div class="timeline-meta">
-                      {activity.date && (
-                        <span class="timeline-date">
-                          {new Date(activity.date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}
-                        </span>
-                      )}
-                      {activity.category && (
-                        <span class={`timeline-cat timeline-cat--${categoryColors[activity.category] ?? 'gray'}`}>
-                          {activity.category}
-                        </span>
-                      )}
-                    </div>
-                    <h3 class="timeline-title">{activity.title}</h3>
-                    {activity.summary && <p class="timeline-summary">{activity.summary}</p>}
-                  </div>
-                </a>
-              ))}
-            </div>
+  <section class="section timeline-wrap">
+    <div class="container">
+      {
+        categories.length > 1 && (
+          <div class="chips filters" role="group" aria-label="구분으로 거르기" data-filters>
+            <button class="chip" aria-pressed="true" data-cat="">
+              전체 <span class="chip__count">{activities.length}</span>
+            </button>
+            {categories.map((c) => (
+              <button class="chip" aria-pressed="false" data-cat={c}>
+                {c} <span class="chip__count">{activities.filter((a) => a.data.category === c).length}</span>
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
-    </section>
-  </main>
+        )
+      }
 
-  <Footer />
+      {
+        years.map((year) => (
+          <section class="year" data-year>
+            <h2 class="year__label">{year}</h2>
+            <ol class="year__list">
+              {activities
+                .filter((a) => yearOf(a.data.date) === year)
+                .map((a) => {
+                  const cover = thumbOf(coverOf(a));
+                  return (
+                    <li data-cat={a.data.category ?? ''}>
+                      <a href={`/activities/${a.id}`} class="entry">
+                        <time datetime={isoDate(a.data.date)}>{formatMonthDay(a.data.date)}</time>
+                        <div class="entry__text">
+                          {a.data.category && <span class="entry__cat">{a.data.category}</span>}
+                          <h3>{a.data.title}</h3>
+                          {a.data.summary && <p>{a.data.summary}</p>}
+                        </div>
+                        <div class="entry__img">{cover && <img src={cover} alt="" loading="lazy" decoding="async" />}</div>
+                      </a>
+                    </li>
+                  );
+                })}
+            </ol>
+          </section>
+        ))
+      }
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .year-group {
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    gap: 2rem;
+  .timeline-wrap {
+    padding-top: 2.5rem;
+  }
+
+  .filters {
     margin-bottom: 3rem;
   }
 
-  .year-label {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--green-deep);
+  .year {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 1rem 2rem;
+    padding-top: 1.75rem;
+    border-top: 2px solid var(--ink);
+  }
+
+  .year + .year {
+    margin-top: 4rem;
+  }
+
+  .year__label {
+    font-size: clamp(1.6rem, 1.04rem + 2.08vw, 2.7rem);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: var(--blue);
+    font-variant-numeric: tabular-nums;
     position: sticky;
-    top: calc(var(--nav-height) + 2rem);
+    top: calc(var(--nav-h) + 1.5rem);
     align-self: start;
   }
 
-  .timeline {
-    position: relative;
-    padding-left: 2rem;
-    border-left: 2px solid var(--cream-dark);
+  .year__list {
+    list-style: none;
   }
 
-  .timeline-item {
-    display: block;
-    position: relative;
-    margin-bottom: 1.5rem;
-    text-decoration: none;
+  .year__list li + li .entry {
+    border-top: 1px solid var(--line);
   }
 
-  .timeline-dot {
-    position: absolute;
-    left: -2.45rem;
-    top: 0.5rem;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: var(--green-mid);
-    border: 2px solid var(--white);
+  .entry {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr 11rem;
+    gap: 1.5rem;
+    padding-block: 0 1.75rem;
+    align-items: start;
   }
 
-  .timeline-card {
-    padding: 1rem 1.2rem;
-    border: 1px solid var(--cream-dark);
-    border-radius: 4px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+  .year__list li + li .entry {
+    padding-top: 1.75rem;
   }
 
-  .timeline-item:hover .timeline-card {
-    border-color: var(--green-light);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  }
-
-  .timeline-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .timeline-date {
-    font-size: 0.78rem;
-    color: var(--gray);
-  }
-
-  .timeline-cat {
-    font-size: 0.6rem;
-    padding: 0.15em 0.5em;
-    border-radius: 2px;
+  .entry time {
+    font-size: var(--t-sm);
     font-weight: 600;
-    letter-spacing: 0.05em;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+    padding-top: 0.2rem;
   }
 
-  .timeline-cat--orange { background: #fff3e0; color: #e65100; }
-  .timeline-cat--yellow { background: #fffde7; color: #f57f17; }
-  .timeline-cat--purple { background: #f3e5f5; color: #7b1fa2; }
-  .timeline-cat--blue { background: #e3f2fd; color: #1565c0; }
-  .timeline-cat--gray { background: var(--cream); color: var(--gray); }
-
-  .timeline-title {
-    font-size: 0.95rem;
-    color: var(--charcoal);
-    line-height: 1.5;
+  .entry__cat {
+    display: inline-block;
+    font-size: var(--t-xs);
+    font-weight: 600;
+    color: var(--ink-2);
+    padding: 0.1rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    margin-bottom: 0.6rem;
   }
 
-  .timeline-summary {
-    font-size: 0.82rem;
-    color: var(--gray);
-    margin-top: 0.3rem;
-    line-height: 1.6;
+  .entry h3 {
+    font-size: var(--t-lg);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    transition: color 0.2s;
   }
 
-  .back-btn {
-    font-size: 0.85rem;
-    color: var(--green-mid);
-    border-bottom: 1px solid currentColor;
-    padding-bottom: 0.1em;
+  .entry:hover h3 {
+    color: var(--blue);
   }
 
-  @media (width <= 768px) {
-    .year-group { grid-template-columns: 1fr; gap: 1rem; }
-    .year-label { position: static; font-size: 2rem; }
-    .timeline { padding-left: 1.5rem; }
-    .timeline-dot { left: -1.9rem; }
+  .entry__text p {
+    margin-top: 0.45rem;
+    color: var(--ink-2);
+    font-size: var(--t-sm);
+    line-height: 1.65;
+  }
+
+  .entry__img {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    background: var(--snow);
+  }
+
+  .entry__img:empty {
+    background: none;
+  }
+
+  .entry__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.7s var(--ease-out);
+  }
+
+  .entry:hover .entry__img img {
+    transform: scale(1.05);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  @media (width <= 860px) {
+    .year {
+      grid-template-columns: 1fr;
+    }
+
+    .year__label {
+      position: static;
+    }
+
+    .entry {
+      grid-template-columns: 1fr 7rem;
+      gap: 0.4rem 1rem;
+    }
+
+    .entry time {
+      grid-column: 1 / -1;
+    }
+
+    .entry__img {
+      grid-row: 2;
+      grid-column: 2;
+    }
   }
 </style>
+
+<script>
+  const group = document.querySelector('[data-filters]');
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-filters] .chip')];
+  const years = [...document.querySelectorAll<HTMLElement>('[data-year]')];
+
+  group?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.chip');
+    if (!btn) return;
+    const cat = btn.dataset.cat ?? '';
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+    const update = () => {
+      for (const year of years) {
+        const items = [...year.querySelectorAll<HTMLElement>('li[data-cat]')];
+        items.forEach((li) => (li.hidden = Boolean(cat) && li.dataset.cat !== cat));
+        year.hidden = items.every((li) => li.hidden);
+      }
+    };
+    // 지원하면 목록이 부드럽게 바뀐다
+    document.startViewTransition ? document.startViewTransition(update) : update();
+  });
+</script>

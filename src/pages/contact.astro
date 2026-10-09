@@ -1,178 +1,331 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
+
+const channels = [
+  { title: '제품 상담', desc: '피부 고민, 제품 고르기, 사용법', action: '채팅으로 묻기', href: 'https://happytalk.io/l/quU0Cb', icon: 'chat', external: true },
+  { title: '고객 서비스', desc: '주문, 교환, 반품과 제품 불편 사항', action: 'cs@justkorea.co.kr', href: 'mailto:cs@justkorea.co.kr', icon: 'mail' },
+  { title: '판매 제휴', desc: '매장 입점과 판매 관련 문의', action: 'sales@justkorea.co.kr', href: 'mailto:sales@justkorea.co.kr', icon: 'mail' },
+  { title: '그 밖의 문의', desc: '회사, 채용, 그 밖의 모든 일', action: 'hq@justkorea.co.kr', href: 'mailto:hq@justkorea.co.kr', icon: 'mail' },
+] as const;
 ---
 
-<BaseLayout title="연락처" description="유스트코리아와 협업 및 문의를 위한 연락처입니다.">
-  <Header />
+<BaseLayout title="문의" description="제품 상담, 주문, 입점과 협업 제안까지 유스트코리아에 문의하는 방법입니다.">
+  <PageHeader section="문의" title="어떤 일로 연락하시나요?" description="내용에 맞는 창구로 보내 주시면 담당자가 바로 답합니다. 협업 제안은 아래 양식으로 보내 주세요." />
 
-  <main>
-    <section class="page-hero">
-      <div class="container">
-        <p class="page-hero__label">Contact</p>
-        <h1 class="page-hero__title">함께<br />만들어가요</h1>
-        <p class="page-hero__desc">협업 제안, 미디어 문의, 비즈니스 파트너십 등 다양한 문의를 환영합니다.</p>
-      </div>
-    </section>
+  <section class="section contact">
+    <div class="container">
+      <ul class="channels">
+        {
+          channels.map((c) => (
+            <li>
+              <a
+                href={c.href}
+                class="channel"
+                target={'external' in c ? '_blank' : undefined}
+                rel={'external' in c ? 'noopener' : undefined}
+              >
+                <h2>{c.title}</h2>
+                <p>{c.desc}</p>
+                <span class="channel__action">
+                  <Icon name={c.icon} size={16} />
+                  {c.action}
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
 
-    <section class="section">
-      <div class="container contact-grid">
-        <div class="contact-info">
-          <div class="contact-item">
-            <span class="contact-item__label">공통 이메일</span>
-            <a href="mailto:hq@justkorea.co.kr" class="contact-item__value">hq@justkorea.co.kr</a>
-          </div>
-          <div class="contact-item">
-            <span class="contact-item__label">판매 관련 문의</span>
-            <a href="mailto:sales@justkorea.co.kr" class="contact-item__value">sales@justkorea.co.kr</a>
-          </div>
-          <div class="contact-item">
-            <span class="contact-item__label">CS 관련 문의</span>
-            <a href="mailto:cs@justkorea.co.kr" class="contact-item__value">cs@justkorea.co.kr</a>
-          </div>
+      <div class="contact__grid">
+        <div class="contact__intro">
+          <p class="mark">협업 제안</p>
+          <h2 class="heading">함께 할 일을 알려 주세요</h2>
+          <p>미디어 취재, 브랜드 협업, 강연과 행사 제안을 받습니다. 담당자가 확인한 뒤 적어 주신 메일로 답합니다.</p>
+          <dl class="contact__office">
+            <div>
+              <dt>본사</dt>
+              <dd>경기도 성남시 분당구 백현로 26, 힐튼 레지던스 2층</dd>
+            </div>
+            <div>
+              <dt>대표 전화</dt>
+              <dd><a href="tel:0234824056">02-3482-4056</a></dd>
+            </div>
+          </dl>
         </div>
 
-        <form class="contact-form" id="contactForm">
-          <div class="form-group">
-            <label class="form-label">이름</label>
-            <input type="text" name="name" class="form-input" placeholder="홍길동" required />
+        <form class="form" id="contactForm" novalidate>
+          <div class="form__row">
+            <div class="field">
+              <label for="cf-name">이름 <span aria-hidden="true">*</span></label>
+              <input id="cf-name" name="name" autocomplete="name" required />
+            </div>
+            <div class="field">
+              <label for="cf-email">답장 받을 이메일 <span aria-hidden="true">*</span></label>
+              <input id="cf-email" type="email" name="email" autocomplete="email" inputmode="email" required />
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">이메일</label>
-            <input type="email" name="email" class="form-input" placeholder="example@email.com" required />
+          <fieldset class="field">
+            <legend>문의 종류</legend>
+            <div class="chips">
+              {
+                ['브랜드 협업', '미디어 취재', '강연과 행사', '기타'].map((t, i) => (
+                  <label class="choice">
+                    <input type="radio" name="type" value={t} checked={i === 0} />
+                    <span class="chip">{t}</span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+          <div class="field">
+            <label for="cf-message">내용 <span aria-hidden="true">*</span></label>
+            <textarea id="cf-message" name="message" rows="7" required placeholder="회사(또는 매체) 이름과 제안하실 내용을 적어 주세요."></textarea>
           </div>
-          <div class="form-group">
-            <label class="form-label">문의 유형</label>
-            <select name="type" class="form-input">
-              <option value="">선택해주세요</option>
-              <option>협업 제안</option>
-              <option>미디어 / PR</option>
-              <option>비즈니스 파트너십</option>
-              <option>기타</option>
-            </select>
+          <p class="form__consent">
+            보내 주신 이름과 이메일은 문의에 답하는 데만 씁니다. 자세한 내용은 <a href="/privacy">개인정보처리방침</a>에 있습니다.
+          </p>
+          <div class="form__submit">
+            <button type="submit" class="btn">
+              <span data-label>문의 보내기</span>
+              <Icon name="arrow" size={18} />
+            </button>
+            <p class="form__status" id="formStatus" role="status"></p>
           </div>
-          <div class="form-group">
-            <label class="form-label">메시지</label>
-            <textarea name="message" class="form-input form-textarea" placeholder="문의 내용을 입력해주세요." required></textarea>
-          </div>
-          <button type="submit" class="form-submit">보내기</button>
-          <p class="form-status" id="formStatus"></p>
         </form>
       </div>
-    </section>
-  </main>
-
-  <Footer />
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .contact-grid {
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: var(--spacing-xl);
-    align-items: start;
+  .contact {
+    padding-top: 3rem;
   }
 
-  .contact-info {
+  .channels {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 2px solid var(--ink);
+  }
+
+  .channel {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    height: 100%;
+    padding: 1.5rem 1.5rem 1.75rem 0;
+    border-bottom: 1px solid var(--line);
   }
 
-  .contact-item__label {
-    display: block;
-    font-size: 0.68rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold);
+  .channels li + li .channel {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--line);
+  }
+
+  .channel h2 {
+    font-size: var(--t-lg);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .channel p {
+    margin-top: 0.3rem;
+    font-size: var(--t-sm);
+    color: var(--ink-2);
+  }
+
+  .channel__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1.25rem;
+    padding-top: 0.75rem;
+    font-size: var(--t-sm);
+    font-weight: 650;
+    color: var(--blue);
+    word-break: break-all;
+  }
+
+  .channel:hover .channel__action {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .contact__grid {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    gap: 3rem clamp(2rem, 6vw, 6rem);
+    margin-top: var(--section);
+  }
+
+  .contact__intro .heading {
+    margin-top: 1rem;
+  }
+
+  .contact__intro > p:not(.mark) {
+    margin-top: 1.1rem;
+    color: var(--ink-2);
+  }
+
+  .contact__office {
+    margin-top: 2.5rem;
+    display: grid;
+    gap: 1rem;
+    font-size: var(--t-sm);
+  }
+
+  .contact__office dt {
+    font-weight: 650;
+  }
+
+  .contact__office dd {
+    color: var(--ink-2);
+  }
+
+  .form {
+    display: grid;
+    gap: 1.6rem;
+  }
+
+  .form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .field {
+    display: grid;
+    gap: 0.5rem;
+    border: 0;
+    min-width: 0;
+  }
+
+  .field label,
+  .field legend {
+    font-size: var(--t-sm);
+    font-weight: 650;
+  }
+
+  .field legend {
     margin-bottom: 0.5rem;
   }
 
-  .contact-item__value {
-    font-size: 0.95rem;
-    color: var(--charcoal);
-    transition: color 0.2s;
+  .field label span {
+    color: var(--red);
   }
 
-  a.contact-item__value:hover {
-    color: var(--green-mid);
+  .field input,
+  .field textarea {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--white);
+    font-size: var(--t-md);
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
   }
 
-  /* Form */
-  .contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .form-label {
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    color: var(--gray);
-  }
-
-  .form-input {
-    padding: 0.9em 1.2em;
-    border: 1px solid var(--cream-dark);
-    border-radius: 2px;
-    background-color: var(--white);
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    color: var(--charcoal);
-    outline: none;
-    transition: border-color 0.2s;
-    appearance: none;
-  }
-
-  .form-input:focus {
-    border-color: var(--green-mid);
-  }
-
-  .form-textarea {
-    min-height: 140px;
+  .field textarea {
     resize: vertical;
+    min-height: 10rem;
+    line-height: 1.7;
   }
 
-  .form-submit {
-    padding: 1em 2.5em;
-    background-color: var(--green-deep);
-    color: var(--cream);
-    border: none;
-    border-radius: 2px;
-    font-family: var(--font-body);
-    font-size: 0.85rem;
-    letter-spacing: 0.08em;
+  .field input:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px rgb(30 89 174 / 0.12);
+  }
+
+  .field [aria-invalid='true'] {
+    border-color: var(--red);
+  }
+
+  .choice input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .choice input:checked + .chip {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--white);
+  }
+
+  .choice input:focus-visible + .chip {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+  }
+
+  .choice .chip {
     cursor: pointer;
-    transition: background-color 0.2s;
-    align-self: flex-start;
   }
 
-  .form-submit:hover {
-    background-color: var(--green-mid);
+  .form__consent {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
   }
 
-  .form-status {
-    font-size: 0.85rem;
-    margin-top: 0.5rem;
+  .form__consent a {
+    text-decoration: underline;
   }
 
-  .form-status.success { color: var(--green-mid); }
-  .form-status.error { color: #c0392b; }
-
-  .form-submit:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .form__submit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
   }
 
-  @media (width <= 768px) {
-    .contact-grid {
+  .form__submit .btn[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .form__status {
+    font-size: var(--t-sm);
+    font-weight: 600;
+  }
+
+  .form__status.is-ok {
+    color: var(--herb);
+  }
+
+  .form__status.is-error {
+    color: var(--red);
+  }
+
+  @media (width <= 960px) {
+    .channels {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .channels li:nth-child(3) .channel {
+      padding-left: 0;
+      border-left: 0;
+    }
+
+    .contact__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (width <= 560px) {
+    .channels {
+      grid-template-columns: 1fr;
+    }
+
+    .channels li + li .channel {
+      padding-left: 0;
+      border-left: 0;
+    }
+
+    .form__row {
       grid-template-columns: 1fr;
     }
   }
@@ -181,21 +334,31 @@ import Footer from '../components/Footer.astro';
 <script>
   const form = document.getElementById('contactForm') as HTMLFormElement;
   const status = document.getElementById('formStatus')!;
+  const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+  const label = button.querySelector<HTMLElement>('[data-label]')!;
+
+  const setStatus = (text: string, kind: 'ok' | 'error' | '' = '') => {
+    status.textContent = text;
+    status.className = `form__status${kind ? ` is-${kind}` : ''}`;
+  };
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-    btn.disabled = true;
-    btn.textContent = '전송 중...';
-    status.textContent = '';
-    status.className = 'form-status';
 
-    const data = {
-      name: (form.elements.namedItem('name') as HTMLInputElement).value,
-      email: (form.elements.namedItem('email') as HTMLInputElement).value,
-      type: (form.elements.namedItem('type') as HTMLSelectElement).value,
-      message: (form.elements.namedItem('message') as HTMLTextAreaElement).value,
-    };
+    // 비어 있거나 형식이 틀린 칸을 표시하고 첫 칸으로 보낸다
+    const fields = [...form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[required], textarea[required]')];
+    fields.forEach((f) => f.setAttribute('aria-invalid', String(!f.checkValidity())));
+    const invalid = fields.find((f) => !f.checkValidity());
+    if (invalid) {
+      setStatus(invalid.type === 'email' && invalid.value ? '이메일 주소 형식을 확인해 주세요.' : '별표(*) 칸을 채워 주세요.', 'error');
+      invalid.focus();
+      return;
+    }
+
+    const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+    button.disabled = true;
+    label.textContent = '보내는 중';
+    setStatus('');
 
     try {
       const res = await fetch('/api/contact', {
@@ -204,20 +367,23 @@ import Footer from '../components/Footer.astro';
         body: JSON.stringify(data),
       });
       if (res.ok) {
-        status.textContent = '문의가 전송되었습니다. 감사합니다!';
-        status.classList.add('success');
         form.reset();
+        fields.forEach((f) => f.removeAttribute('aria-invalid'));
+        setStatus('문의를 보냈습니다. 적어 주신 메일로 답하겠습니다.', 'ok');
       } else {
-        const err = await res.json();
-        status.textContent = err.error || '전송에 실패했습니다.';
-        status.classList.add('error');
+        const err = await res.json().catch(() => ({}));
+        setStatus(err.error || '보내지 못했습니다. hq@justkorea.co.kr 로 메일을 보내 주세요.', 'error');
       }
     } catch {
-      status.textContent = '네트워크 오류가 발생했습니다.';
-      status.classList.add('error');
+      setStatus('인터넷 연결을 확인한 뒤 다시 보내 주세요.', 'error');
     }
 
-    btn.disabled = false;
-    btn.textContent = '보내기';
+    button.disabled = false;
+    label.textContent = '문의 보내기';
+  });
+
+  form.addEventListener('input', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.getAttribute('aria-invalid') === 'true' && (t as HTMLInputElement).checkValidity()) t.setAttribute('aria-invalid', 'false');
   });
 </script>

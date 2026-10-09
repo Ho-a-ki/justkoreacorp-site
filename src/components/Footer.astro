@@ -1,182 +1,180 @@
 ---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+
+const groups = [
+  {
+    title: '둘러보기',
+    links: [
+      { label: '주요 활동', href: '/activities' },
+      { label: '허브 백과사전', href: '/herb' },
+      { label: '스토어', href: '/stores' },
+      { label: '미디어', href: '/press' },
+    ],
+  },
+  {
+    title: '도움',
+    links: [
+      { label: '자주 묻는 질문', href: '/faq' },
+      { label: '제품 상담 (채팅)', href: 'https://happytalk.io/l/quU0Cb', external: true },
+      { label: '협업 문의', href: '/contact' },
+    ],
+  },
+  {
+    title: 'JUST 바깥으로',
+    links: [
+      { label: '스파 예약', href: 'https://spa.justkoreacorp.com/', external: true },
+      { label: '온라인 스토어', href: 'https://justkorea.co.kr', external: true },
+      { label: '인스타그램', href: 'https://www.instagram.com/justkorea_official/', external: true },
+    ],
+  },
+];
 ---
 
 <footer class="footer">
-  <div class="footer-inner">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <Logo class="footer__logo" />
+        <p>스위스 알프스의 허브를 담은 올케어 코스메틱.<br />1930년 아펜첼에서 시작한 JUST의 한국 공식 법인입니다.</p>
+      </div>
 
-    <div class="footer-col">
-      <h3>(주) 유스트코리아</h3>
-      <p>스위스 알프스의 천연 허브를 담은<br />올케어 코스메틱</p>
-      <p class="footer-small">대표자명 : 임순채<br />사업자번호 : 261-81-02131</p>
+      {
+        groups.map((group) => (
+          <nav class="footer__group" aria-label={group.title}>
+            <h2>{group.title}</h2>
+            <ul>
+              {group.links.map((link) => (
+                <li>
+                  <a
+                    href={link.href}
+                    target={link.external ? '_blank' : undefined}
+                    rel={link.external ? 'noopener' : undefined}
+                  >
+                    {link.label}
+                    {link.external && <Icon name="external" size={13} />}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
     </div>
 
-    <div class="footer-col">
-      <h3>링크</h3>
-      <nav class="footer-nav">
-        <a href="/">홈</a>
-        <a href="/activities">주요 활동</a>
-        <a href="/stores">스토어</a>
-        <a href="https://spa.justkoreacorp.com/" target="_blank" rel="noopener">스파</a>
-        <a href="https://justkorea.co.kr" target="_blank" rel="noopener">제품 찾기</a>
-        <a href="/herb">허브 백과사전</a>
-        <a href="/faq">FAQ</a>
-        <a href="/press">Press & Public</a>
-      </nav>
-    </div>
-
-    <div class="footer-col">
-      <h3>고객 지원</h3>
-      <nav class="footer-nav">
-        <a href="https://happytalk.io/l/quU0Cb" target="_blank" rel="noopener">문의하기</a>
-        <a href="/contact">협업 문의</a>
-      </nav>
-    </div>
-
-    <div class="footer-col">
-      <h3>연락처</h3>
-      <p>경기도 성남시 분당구 백현로 26<br />힐튼 레지던스 2층 유스트</p>
-      <p>이메일: hq@justkorea.co.kr</p>
-      <p>전화: 02-3482-4056</p>
-      <a href="https://www.instagram.com/justkorea_official/" target="_blank" rel="noopener" aria-label="Instagram" class="footer-instagram">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-        </svg>
-      </a>
-    </div>
-
-  </div>
-
-  <div class="footer-bottom">
-    <p>© {new Date().getFullYear()} 유스트코리아. All rights reserved</p>
-    <div class="footer-bottom-links">
-      <a href="/terms">이용약관</a>
-      <a href="/privacy">개인정보처리방침</a>
+    <div class="footer__info">
+      <address>
+        <span>(주)유스트코리아</span>
+        <span>대표 임순채</span>
+        <span>사업자등록번호 261-81-02131</span>
+        <span>경기도 성남시 분당구 백현로 26, 힐튼 레지던스 2층</span>
+        <a href="tel:02-3482-4056">02-3482-4056</a>
+        <a href="mailto:hq@justkorea.co.kr">hq@justkorea.co.kr</a>
+      </address>
+      <div class="footer__legal">
+        <p>© {new Date().getFullYear()} JUST Korea</p>
+        <a href="/terms">이용약관</a>
+        <a href="/privacy"><strong>개인정보처리방침</strong></a>
+      </div>
     </div>
   </div>
 </footer>
 
 <style>
   .footer {
-    background-color: var(--green-deep);
-    color: #ffffff;
-    padding: 3rem 2rem 0;
-    font-family: var(--font-body);
+    --logo-ink: #ffffff;
+    background: var(--blue-deep);
+    color: rgb(255 255 255 / 0.72);
+    font-size: var(--t-sm);
+    padding-top: clamp(3.5rem, 2rem + 4vw, 5.5rem);
   }
 
-  .footer-inner {
-    max-width: 1200px;
-    margin: 0 auto;
+  .footer__top {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1.6fr repeat(3, 1fr);
     gap: 2.5rem;
-    padding-bottom: 3rem;
+    padding-bottom: 3.5rem;
   }
 
-  .footer-col h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 1.25rem;
-    font-family: var(--font-body);
-    letter-spacing: 0;
+  .footer__brand :global(.footer__logo) {
+    height: 64px;
+    width: auto;
+    margin: -6px 0 1rem -4px;
   }
 
-  .footer-col p {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.85);
+  .footer__brand p {
+    max-width: 22rem;
     line-height: 1.7;
-    margin-bottom: 0.6rem;
   }
 
-  .footer-small {
-    font-size: 0.75rem !important;
-    color: rgba(255, 255, 255, 0.65) !important;
+  .footer__group h2 {
+    font-size: var(--t-sm);
+    font-weight: 650;
+    color: var(--white);
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
   }
 
-  .footer-nav {
-    display: flex;
-    flex-direction: column;
+  .footer__group ul {
+    list-style: none;
+    display: grid;
     gap: 0.55rem;
   }
 
-  .footer-nav a {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.85);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  .footer-nav a:hover {
-    color: #ffffff;
-    text-decoration: underline;
-  }
-
-  .footer-instagram {
-    display: inline-block;
-    margin-top: 1rem;
-    color: rgba(255, 255, 255, 0.85);
-    transition: color 0.2s;
-  }
-
-  .footer-instagram:hover {
-    color: #ffffff;
-  }
-
-  .footer-bottom {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
+  .footer__group a {
+    display: inline-flex;
     align-items: center;
-    padding: 1.5rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-  }
-
-  .footer-bottom p {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.85);
-  }
-
-  .footer-bottom-links {
-    display: flex;
-    gap: 1.5rem;
-  }
-
-  .footer-bottom-links a {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.85);
-    text-decoration: none;
+    gap: 0.3rem;
     transition: color 0.2s;
   }
 
-  .footer-bottom-links a:hover {
-    color: #ffffff;
-    text-decoration: underline;
+  .footer__group a:hover,
+  .footer__info a:hover {
+    color: var(--white);
   }
 
-  /* 모바일 */
-  @media (width <= 1023px) {
-    .footer-inner {
-      grid-template-columns: repeat(2, 1fr);
+  .footer__info {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    padding-block: 1.75rem 2.25rem;
+    border-top: 1px solid rgb(255 255 255 / 0.14);
+    font-size: var(--t-xs);
+    color: rgb(255 255 255 / 0.55);
+  }
+
+  .footer__info address {
+    font-style: normal;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.1rem;
+    max-width: 52rem;
+  }
+
+  .footer__legal {
+    display: flex;
+    gap: 1.1rem;
+  }
+
+  .footer__legal strong {
+    font-weight: 650;
+    color: rgb(255 255 255 / 0.8);
+  }
+
+  @media (width <= 900px) {
+    .footer__top {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .footer__brand {
+      grid-column: 1 / -1;
     }
   }
 
-  @media (width <= 600px) {
-    .footer {
-      padding: 2.5rem 1.5rem 0;
-    }
-
-    .footer-inner {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-
-    .footer-bottom {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
+  @media (width <= 560px) {
+    .footer__top {
+      grid-template-columns: 1fr 1fr;
     }
   }
 </style>

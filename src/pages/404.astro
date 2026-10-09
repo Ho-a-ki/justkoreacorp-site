@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<BaseLayout title="페이지를 찾을 수 없습니다">
+  <section class="section nf">
+    <div class="container">
+      <p class="mark">404</p>
+      <h1 class="heading">찾는 페이지가 없습니다</h1>
+      <p class="lede">주소가 바뀌었거나 글이 내려갔을 수 있습니다. 아래에서 다시 찾아보세요.</p>
+      <div class="nf__actions">
+        <a href="/" class="btn">홈으로 <Icon name="arrow" size={18} /></a>
+        <a href="/herb" class="btn btn--ghost">허브 백과사전</a>
+        <a href="/faq" class="btn btn--ghost">자주 묻는 질문</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    min-height: 60vh;
+  }
+
+  .nf .heading {
+    margin: 1rem 0;
+  }
+
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 2rem;
+  }
+</style>

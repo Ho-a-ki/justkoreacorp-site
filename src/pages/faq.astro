@@ -1,121 +1,383 @@
 ---
+import { render } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import faq from '../data/faq.json';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
+import { getFaqGroups } from '../lib/content';
+
+const groups = await getFaqGroups();
+const total = groups.reduce((n, g) => n + g.items.length, 0);
+
+// 질문마다 본문을 미리 렌더하고, 검색용 글자도 만든다
+const rendered = await Promise.all(
+  groups.map(async (g, gi) => ({
+    ...g,
+    anchor: `cat-${gi + 1}`,
+    items: await Promise.all(
+      g.items.map(async (item) => ({
+        item,
+        Content: (await render(item)).Content,
+        text: `${item.data.question} ${(item.body ?? '').replace(/!\[[^\]]*\]\([^)]*\)|[#>*_`|\-\[\]()]/g, ' ')}`.replace(/\s+/g, ' '),
+      })),
+    ),
+  })),
+);
 ---
 
-<BaseLayout title="FAQ" description="유스트코리아에 대해 자주 묻는 질문과 답변입니다.">
-  <Header />
+<BaseLayout title="자주 묻는 질문" description="제품 사용법과 성분, 안전성까지 유스트에 대해 자주 묻는 질문과 답변입니다.">
+  <PageHeader section="자주 묻는 질문" title="무엇이 궁금하세요?" description={`제품 사용법부터 성분, 안전성까지 ${total}가지 질문에 답했습니다.`}>
+    <label class="search" data-faq-search>
+      <Icon name="search" />
+      <span class="sr-only">질문과 답변에서 찾기</span>
+      <input type="search" placeholder="예: 임산부, 보관, 백노삼" autocomplete="off" />
+    </label>
+  </PageHeader>
 
-  <main>
-    <section class="page-hero">
-      <div class="container">
-        <p class="page-hero__label">FAQ</p>
-        <h1 class="page-hero__title">자주 묻는 질문</h1>
-        <p class="page-hero__desc">유스트코리아 제품과 서비스에 대한 궁금증을 해결해보세요.</p>
-      </div>
-    </section>
+  <section class="section faq">
+    <div class="container faq__grid">
+      <nav class="faq__nav" aria-label="분류">
+        <ul>
+          {
+            rendered.map((g) => (
+              <li>
+                <a href={`#${g.anchor}`} data-cat-link={g.anchor}>
+                  {g.category}
+                  <span class="chip__count">{g.items.length}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
 
-    <section class="section">
-      <div class="container">
-        <div class="faq-wrap">
-          {faq.map(cat => (
-            <div class="faq-category">
-              <h2 class="faq-category__title">{cat.category}</h2>
-              <div class="faq-list">
-                {cat.items.map(item => (
-                  <details class="faq-item">
-                    <summary class="faq-item__question">{item.question}</summary>
-                    <div class="faq-item__answer" set:html={item.answer} />
+      <div class="faq__body">
+        <p class="faq__result" aria-live="polite" data-faq-result hidden></p>
+        {
+          rendered.map((g) => (
+            <section class="faq-group" id={g.anchor} data-faq-group>
+              <h2>{g.category}</h2>
+              <div class="faq-group__list">
+                {g.items.map(({ item, Content, text }) => (
+                  <details class="qa" id={item.id} data-text={text}>
+                    <summary>
+                      <span class="qa__q">{item.data.question}</span>
+                      <span class="qa__icon" aria-hidden="true">
+                        <Icon name="plus" size={20} />
+                      </span>
+                    </summary>
+                    <div class="qa__a">
+                      <div class="prose">
+                        <Content />
+                      </div>
+                      <button class="qa__copy" type="button" data-copy={item.id}>
+                        이 답변 링크 복사
+                      </button>
+                    </div>
                   </details>
                 ))}
               </div>
-            </div>
-          ))}
+            </section>
+          ))
+        }
+        <div class="empty-state" data-faq-empty hidden>
+          <strong>맞는 질문을 찾지 못했습니다</strong>
+          다른 낱말로 찾아보거나, 아래 채팅 상담으로 바로 물어보세요.
         </div>
-      </div>
-    </section>
-  </main>
 
-  <Footer />
+        <aside class="faq__help">
+          <h2>여기 없는 질문이 있다면</h2>
+          <p>피부 상태나 제품 고르기처럼 사람마다 다른 질문은 채팅으로 상담해 드립니다.</p>
+          <a href="https://happytalk.io/l/quU0Cb" class="btn" target="_blank" rel="noopener"><Icon name="chat" size={18} /> 채팅 상담 열기</a>
+        </aside>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
-  .faq-wrap {
-    max-width: 800px;
-    margin: 0 auto;
+  .faq {
+    padding-top: 3rem;
+  }
+
+  .faq__grid {
+    display: grid;
+    grid-template-columns: 14rem 1fr;
+    gap: 3rem clamp(2rem, 5vw, 5rem);
+    align-items: start;
+  }
+
+  .faq__nav {
+    position: sticky;
+    top: calc(var(--nav-h) + 1.5rem);
+  }
+
+  .faq__nav ul {
+    list-style: none;
+    border-left: 1px solid var(--line);
+  }
+
+  .faq__nav a {
     display: flex;
-    flex-direction: column;
-    gap: 3rem;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-left: -1px;
+    padding: 0.5rem 0 0.5rem 1rem;
+    border-left: 2px solid transparent;
+    font-size: var(--t-sm);
+    font-weight: 550;
+    color: var(--ink-2);
+    transition:
+      color 0.2s,
+      border-color 0.2s;
   }
 
-  .faq-category__title {
-    font-size: 1.3rem;
-    color: var(--green-deep);
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--green-deep);
+  .faq__nav a:hover {
+    color: var(--ink);
   }
 
-  .faq-list {
+  .faq__nav a[aria-current='true'] {
+    color: var(--blue);
+    border-left-color: var(--blue);
+    font-weight: 700;
+  }
+
+  .faq__result {
+    margin-bottom: 1.5rem;
+    font-size: var(--t-sm);
+    color: var(--ink-2);
+  }
+
+  .faq-group {
+    scroll-margin-top: calc(var(--nav-h) + 1.5rem);
+  }
+
+  .faq-group + .faq-group {
+    margin-top: 3.5rem;
+  }
+
+  .faq-group h2 {
+    font-size: var(--t-xl);
+    font-weight: 750;
+    letter-spacing: -0.04em;
+    padding-bottom: 0.9rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .qa {
+    border-bottom: 1px solid var(--line);
+    scroll-margin-top: calc(var(--nav-h) + 1.5rem);
+  }
+
+  .qa summary {
     display: flex;
-    flex-direction: column;
-  }
-
-  .faq-item {
-    border-bottom: 1px solid var(--cream-dark);
-  }
-
-  .faq-item__question {
-    padding: 1.2rem 0;
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--charcoal);
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.35rem 0;
     cursor: pointer;
     list-style: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
   }
 
-  .faq-item__question::-webkit-details-marker {
+  .qa summary::-webkit-details-marker {
     display: none;
   }
 
-  .faq-item__question::after {
-    content: '+';
-    font-size: 1.4rem;
-    font-weight: 300;
-    color: var(--gray);
-    flex-shrink: 0;
+  .qa__q {
+    font-size: var(--t-lg);
+    font-weight: 650;
+    letter-spacing: -0.025em;
+    line-height: 1.5;
+    transition: color 0.2s;
   }
 
-  .faq-item[open] .faq-item__question::after {
-    content: '−';
+  .qa summary:hover .qa__q,
+  .qa[open] .qa__q {
+    color: var(--blue);
   }
 
-  .faq-item__question:hover {
-    color: var(--green-mid);
+  .qa__icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-top: -0.1rem;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    transition:
+      transform 0.45s var(--ease-out),
+      background-color 0.25s,
+      color 0.25s,
+      border-color 0.25s;
   }
 
-  .faq-item__answer {
-    padding: 0 0 1.5rem;
-    font-size: 0.9rem;
-    line-height: 1.8;
-    color: var(--gray);
+  .qa[open] .qa__icon {
+    transform: rotate(45deg);
+    background: var(--blue);
+    border-color: var(--blue);
+    color: var(--white);
   }
 
-  .faq-item__answer :global(p) { margin-bottom: 0.8rem; }
-  .faq-item__answer :global(ul), .faq-item__answer :global(ol) { padding-left: 1.5rem; margin-bottom: 0.8rem; }
-  .faq-item__answer :global(strong) { color: var(--charcoal); }
-  .faq-item__answer :global(a) { color: var(--green-mid); text-decoration: underline; }
-  .faq-item__answer :global(figure) { margin: 1rem 0; }
-  .faq-item__answer :global(img) { max-width: 100%; border-radius: 4px; }
-  .faq-item__answer :global(blockquote) { border-left: 3px solid var(--gold); padding: 0.5rem 1rem; margin: 0.8rem 0; background-color: var(--cream); color: var(--gray); }
-  .faq-item__answer :global(table) { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.85rem; }
-  .faq-item__answer :global(th), .faq-item__answer :global(td) { border: 1px solid var(--cream-dark); padding: 0.6rem 0.8rem; text-align: left; }
-  .faq-item__answer :global(th) { background-color: var(--cream); font-weight: 600; color: var(--charcoal); }
-  .faq-item__answer :global(.callout) { background-color: var(--cream); border-left: 3px solid var(--green-mid); padding: 0.8rem 1rem; margin: 0.6rem 0; border-radius: 0 4px 4px 0; }
+  /* 펼침 — 지원 브라우저에서는 높이가 부드럽게 바뀐다 */
+  .qa::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size 0.45s var(--ease-out),
+      content-visibility 0.45s allow-discrete;
+  }
+
+  .qa[open]::details-content {
+    block-size: auto;
+  }
+
+  .qa__a {
+    padding: 0 3.75rem 1.75rem 0;
+  }
+
+  .qa__a .prose {
+    font-size: var(--t-md);
+  }
+
+  .qa__copy {
+    margin-top: 1.25rem;
+    font-size: var(--t-xs);
+    font-weight: 600;
+    color: var(--ink-3);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .qa__copy:hover {
+    color: var(--blue);
+  }
+
+  .faq__help {
+    margin-top: 4.5rem;
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    background: var(--snow);
+    border-radius: var(--r-md);
+  }
+
+  .faq__help h2 {
+    font-size: var(--t-row);
+    font-weight: 750;
+    letter-spacing: -0.04em;
+  }
+
+  .faq__help p {
+    margin: 0.4rem 0 1.5rem;
+    color: var(--ink-2);
+  }
+
+
+  [hidden] {
+    display: none !important;
+  }
+
+  @media (width <= 900px) {
+    .faq__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .faq__nav {
+      position: static;
+      overflow-x: auto;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      scrollbar-width: none;
+    }
+
+    .faq__nav ul {
+      display: flex;
+      gap: 0.5rem;
+      border: 0;
+      width: max-content;
+    }
+
+    .faq__nav a {
+      margin: 0;
+      padding: 0.45rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .faq__nav a[aria-current='true'] {
+      border-color: var(--blue);
+    }
+
+    .qa__a {
+      padding-right: 0;
+    }
+  }
 </style>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>('[data-faq-search] input');
+  const groups = [...document.querySelectorAll<HTMLElement>('[data-faq-group]')];
+  const items = [...document.querySelectorAll<HTMLDetailsElement>('details.qa')];
+  const result = document.querySelector<HTMLElement>('[data-faq-result]');
+  const empty = document.querySelector<HTMLElement>('[data-faq-empty]');
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-cat-link]')];
+
+  const normalize = (s: string) => s.replace(/\s+/g, '').toLowerCase();
+
+  // 검색: 질문과 답변을 함께 찾고, 하나뿐이면 펼친다
+  const search = () => {
+    const q = normalize(input?.value ?? '');
+    let shown = 0;
+    for (const d of items) {
+      const hit = !q || normalize(d.dataset.text ?? '').includes(q);
+      d.hidden = !hit;
+      if (hit) shown++;
+    }
+    groups.forEach((g) => (g.hidden = [...g.querySelectorAll<HTMLElement>('details.qa')].every((d) => d.hidden)));
+    if (result) {
+      result.hidden = !q;
+      result.textContent = q ? `'${input?.value.trim()}'에 맞는 질문 ${shown}개` : '';
+    }
+    if (empty) empty.hidden = shown > 0;
+    if (q && shown === 1) items.find((d) => !d.hidden)?.setAttribute('open', '');
+  };
+  input?.addEventListener('input', search);
+
+  // 주소 끝의 #질문id 로 들어오면 그 답을 펼친다
+  const openFromHash = () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const target = id ? document.getElementById(id) : null;
+    if (target instanceof HTMLDetailsElement) {
+      target.open = true;
+      target.scrollIntoView({ block: 'start' });
+    }
+  };
+  openFromHash();
+  window.addEventListener('hashchange', openFromHash);
+
+  // 링크 복사
+  document.addEventListener('click', async (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-copy]');
+    if (!btn) return;
+    const url = `${location.origin}${location.pathname}#${btn.dataset.copy}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      btn.textContent = '링크를 복사했습니다';
+    } catch {
+      history.replaceState(null, '', `#${btn.dataset.copy}`);
+      btn.textContent = '주소창의 링크를 복사하세요';
+    }
+    setTimeout(() => (btn.textContent = '이 답변 링크 복사'), 2200);
+  });
+
+  // 지금 보고 있는 분류 표시
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        links.forEach((a) => a.setAttribute('aria-current', String(a.dataset.catLink === entry.target.id)));
+      }
+    },
+    { rootMargin: '-30% 0px -60% 0px' },
+  );
+  groups.forEach((g) => io.observe(g));
+</script>

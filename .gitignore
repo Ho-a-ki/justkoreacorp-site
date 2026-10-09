@@ -6,3 +6,9 @@ node_modules/
 
 # Local Netlify folder
 .netlify
+.gstack/
+.dev.vars*
+.wrangler/
+
+# 목록용 섬네일 (scripts/thumbs.mjs 가 만든다)
+public/_thumbs/

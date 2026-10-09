@@ -1,117 +1,150 @@
 ---
+import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import activities from '../../data/activities.json';
+import Icon from '../../components/Icon.astro';
+import { getActivities, coverOf, formatDate, isoDate, neighbors } from '../../lib/content';
 
-export function getStaticPaths() {
-  return activities.map(a => ({ params: { id: a.id } }));
+export async function getStaticPaths() {
+  const activities = await getActivities();
+  return activities.map((activity) => ({ params: { id: activity.id }, props: { activity, activities } }));
 }
 
-const { id } = Astro.params;
-const activity = activities.find(a => a.id === id)!;
-
-const formattedDate = activity.date
-  ? new Date(activity.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
-  : '';
+const { activity, activities } = Astro.props;
+const { Content } = await render(activity);
+const { prev, next } = neighbors(activities, activity.id);
+const title = activity.data.title;
 ---
 
-<BaseLayout title={activity.title} description={activity.summary || activity.title}>
-  <Header />
-
-  <main>
-    <section class="page-hero">
-      <div class="container">
-        <a href="/activities" class="back-link">← 주요 활동</a>
-        <div class="hero-meta">
-          {formattedDate && <span class="hero-date">{formattedDate}</span>}
-          {activity.category && <span class="hero-cat">{activity.category}</span>}
-        </div>
-        <h1 class="page-hero__title">{activity.title}</h1>
-        {activity.summary && <p class="page-hero__desc">{activity.summary}</p>}
+<BaseLayout title={title} description={activity.data.summary || title} image={coverOf(activity) || undefined}>
+  <article class="article">
+    <header class="container article__head">
+      <a href="/activities" class="article__back"><Icon name="arrow-left" size={16} /> 주요 활동</a>
+      <div class="article__meta">
+        <time datetime={isoDate(activity.data.date)}>{formatDate(activity.data.date)}</time>
+        {activity.data.category && <span>{activity.data.category}</span>}
       </div>
-    </section>
+      <h1 class="article__title">{title}</h1>
+      {activity.data.summary && <p class="article__summary">{activity.data.summary}</p>}
+    </header>
 
-    <section class="section">
-      <div class="container">
-        <article class="activity-content" set:html={activity.content} />
-        <div class="article-footer">
-          <a href="/activities" class="back-btn">← 목록으로</a>
-        </div>
-      </div>
-    </section>
-  </main>
+    <div class="container article__body prose">
+      <Content />
+    </div>
 
-  <Footer />
+    <nav class="container pager" aria-label="다른 활동">
+      {
+        prev ? (
+          <a href={`/activities/${prev.id}`} class="pager__link">
+            <span>다음 활동</span>
+            <strong>{prev.data.title}</strong>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next && (
+          <a href={`/activities/${next.id}`} class="pager__link pager__link--next">
+            <span>지난 활동</span>
+            <strong>{next.data.title}</strong>
+          </a>
+        )
+      }
+    </nav>
+  </article>
 </BaseLayout>
 
 <style>
-  .back-link {
-    display: inline-block;
-    font-size: 0.82rem;
-    color: rgba(244, 239, 230, 0.6);
-    margin-bottom: 1.5rem;
-    transition: color 0.2s;
+  .article {
+    padding-block: clamp(2rem, 1rem + 3vw, 4rem) var(--section);
   }
-  .back-link:hover { color: var(--cream); }
 
-  .hero-meta {
+  .article__head,
+  .article__body,
+  .pager {
+    max-width: calc(46rem + var(--gutter) * 2);
+  }
+
+  .article__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--t-sm);
+    font-weight: 600;
+    color: var(--ink-2);
+    margin-bottom: 2rem;
+  }
+
+  .article__back:hover {
+    color: var(--blue);
+  }
+
+  .article__meta {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-bottom: 1rem;
+    font-size: var(--t-sm);
+    color: var(--ink-2);
   }
 
-  .hero-date {
-    font-size: 0.8rem;
-    color: rgba(244, 239, 230, 0.6);
-    letter-spacing: 0.05em;
+  .article__meta span {
+    font-size: var(--t-xs);
+    font-weight: 600;
+    padding: 0.1rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
   }
 
-  .hero-cat {
-    font-size: 0.68rem;
-    padding: 0.2em 0.7em;
-    border: 1px solid rgba(210, 172, 83, 0.4);
-    color: var(--gold);
-    border-radius: 2px;
-    letter-spacing: 0.08em;
+  .article__title {
+    margin-top: 1rem;
+    font-size: var(--t-title);
+    font-weight: 800;
+    letter-spacing: var(--ls-title);
+    line-height: 1.2;
   }
 
-  .activity-content {
-    max-width: 720px;
-    margin: 0 auto;
-    font-size: 1rem;
-    line-height: 1.9;
-    color: var(--charcoal);
+  .article__summary {
+    margin-top: 1rem;
+    font-size: var(--t-lg);
+    color: var(--ink-2);
   }
 
-  .activity-content :global(h2) { font-size: 1.8rem; color: var(--green-deep); margin: 2.5rem 0 1rem; font-family: var(--font-display); }
-  .activity-content :global(h3) { font-size: 1.4rem; color: var(--green-deep); margin: 2rem 0 0.75rem; font-family: var(--font-display); }
-  .activity-content :global(h4) { font-size: 1.1rem; color: var(--green-deep); margin: 1.5rem 0 0.5rem; }
-  .activity-content :global(p) { margin-bottom: 1.2rem; }
-  .activity-content :global(ul), .activity-content :global(ol) { padding-left: 1.5rem; margin-bottom: 1.2rem; }
-  .activity-content :global(li) { margin-bottom: 0.4rem; }
-  .activity-content :global(blockquote) { border-left: 3px solid var(--gold); padding: 0.75rem 1.5rem; margin: 1.5rem 0; background-color: var(--cream); color: var(--gray); }
-  .activity-content :global(hr) { border: none; border-top: 1px solid var(--cream-dark); margin: 2rem 0; }
-  .activity-content :global(figure) { margin: 2rem 0; }
-  .activity-content :global(img) { width: 100%; border-radius: 4px; }
-  .activity-content :global(figcaption) { font-size: 0.82rem; color: var(--gray); text-align: center; margin-top: 0.5rem; }
-  .activity-content :global(.callout) { background-color: var(--cream); border-left: 3px solid var(--green-mid); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 4px 4px 0; }
-  .activity-content :global(a) { color: var(--green-mid); text-decoration: underline; }
-
-  .article-footer {
-    max-width: 720px;
-    margin: 3rem auto 0;
-    padding-top: 2rem;
-    border-top: 1px solid var(--cream-dark);
+  .article__body {
+    margin-top: 3rem;
   }
 
-  .back-btn {
-    font-size: 0.85rem;
-    color: var(--green-mid);
-    border-bottom: 1px solid currentColor;
-    padding-bottom: 0.1em;
+  .pager {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: var(--section);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .pager__link {
+    display: grid;
+    gap: 0.15rem;
+    max-width: 48%;
+  }
+
+  .pager__link span {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+  }
+
+  .pager__link strong {
+    font-weight: 650;
+    line-height: 1.5;
     transition: color 0.2s;
   }
-  .back-btn:hover { color: var(--gold); }
+
+  .pager__link:hover strong {
+    color: var(--blue);
+  }
+
+  .pager__link--next {
+    text-align: right;
+    margin-left: auto;
+  }
 </style>
