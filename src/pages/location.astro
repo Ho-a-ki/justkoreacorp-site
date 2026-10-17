@@ -1,0 +1,168 @@
+---
+// 노션 위키 「유스트코리아 찾아오시는 길」 에서 옮김
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { responsive } from '../lib/images.mjs';
+
+const routes = [
+  {
+    station: '수내역',
+    walk: '도보 10~15분',
+    stop: '정자사거리',
+    buses: '220, 117, 310, 370',
+  },
+  {
+    station: '정자역',
+    stop: '정자역.정자1동 주민센터 (2번 출구 앞)',
+    buses: '220, 117',
+  },
+];
+
+const walkImg = responsive('/images/location/walk-route.png', '(width <= 900px) 100vw, 50vw');
+const entranceImg = responsive('/images/location/entrance.png', '(width <= 900px) 100vw, 50vw');
+---
+
+<BaseLayout title="찾아오시는 길" description="유스트코리아 본사(경기도 성남시 분당구 백현로 26, 힐튼호텔 레지던스동 2층) 찾아오시는 길입니다.">
+  <PageHeader title="찾아오시는 길" description="경기도 성남시 분당구 백현로 26, 힐튼호텔 레지던스동 2층" />
+
+  <section class="section location">
+    <div class="container">
+      <h2 class="location__title">지하철·버스</h2>
+      <ul class="location__routes">
+        {
+          routes.map((r) => (
+            <li>
+              <h3>
+                {r.station} 하차{r.walk && <span>→ {r.walk}</span>}
+              </h3>
+              <dl>
+                <div>
+                  <dt>버스 정류장</dt>
+                  <dd>{r.stop}</dd>
+                </div>
+                <div>
+                  <dt>탑승 노선</dt>
+                  <dd>{r.buses}</dd>
+                </div>
+                <div>
+                  <dt>하차 정류장</dt>
+                  <dd>한국잡월드 (하차 후 도보 약 5분)</dd>
+                </div>
+                <div>
+                  <dt>배차</dt>
+                  <dd>220번 기준 약 10분 간격</dd>
+                </div>
+              </dl>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="location__grid">
+        <figure>
+          <h2 class="location__title">한국잡월드 정류장에서 걷는 길</h2>
+          <img {...walkImg} alt="한국잡월드 정류장에서 힐튼 레지던스동까지 도보 경로 지도" width="1022" height="832" loading="lazy" decoding="async" />
+        </figure>
+
+        <figure>
+          <h2 class="location__title">레지던스동 출입</h2>
+          <img {...entranceImg} alt="레지던스동 입구 두 곳이 빨간 상자로 표시된 건물 사진" width="682" height="475" loading="lazy" decoding="async" />
+          <ul class="location__steps">
+            <li>입구는 두 곳입니다 (사진의 빨간 표시).</li>
+            <li><strong>왼쪽 입구</strong>로 들어오면 엘리베이터를 타고 2층으로 오세요.</li>
+            <li><strong>오른쪽 입구</strong>로 들어오면 안쪽 왼쪽 입구를 지나 엘리베이터를 타고 2층으로 오세요.</li>
+            <li>2층에서 내리면 바로 왼쪽 <strong>남색 문(Office)</strong>이 사무실입니다.</li>
+          </ul>
+        </figure>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .location {
+    padding-top: 3rem;
+  }
+
+  .location__title {
+    font-size: var(--t-lg);
+    margin-bottom: 1.25rem;
+  }
+
+  .location__routes {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: var(--section);
+  }
+
+  .location__routes li {
+    border-top: 2px solid var(--ink);
+    padding-top: 1.25rem;
+  }
+
+  .location__routes h3 {
+    font-size: var(--t-lg);
+    margin-bottom: 1rem;
+  }
+
+  .location__routes h3 span {
+    margin-left: 0.5rem;
+    font-weight: 400;
+    font-size: var(--t-sm);
+    color: var(--ink-2);
+  }
+
+  .location__routes dl {
+    display: grid;
+    gap: 0.5rem;
+    font-size: var(--t-sm);
+  }
+
+  .location__routes dl div {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .location__routes dt {
+    color: var(--ink-2);
+  }
+
+  .location__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+
+  .location__grid img {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+  }
+
+  .location__steps {
+    margin-top: 1.25rem;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 0.5rem;
+    font-size: var(--t-sm);
+    line-height: 1.7;
+    color: var(--ink-2);
+  }
+
+  .location__steps strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  @media (width <= 900px) {
+    .location__routes,
+    .location__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
